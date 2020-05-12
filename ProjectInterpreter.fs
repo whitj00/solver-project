@@ -117,12 +117,14 @@ let evalVal index board =
 let evalLen board = List.length (getList board)
 
 let evalAllChanges init change list =
-    let rec changeHelper (prev : Expr list) (curr: Expr) next acc =
-        match (prev,curr,next) with
-        | (_, x, []) when x = init -> (List(prev @ [change]))::acc
-        | (_, x, _) when x = init -> changeHelper (prev @ [curr]) next.Head next.Tail (List(prev @ (change::next))::acc)
+    let rec changeHelper (prev: Expr list) (curr: Expr) next acc =
+        match (prev, curr, next) with
+        | (_, x, []) when x = init -> (List(prev @ [ change ])) :: acc
+        | (_, x, _) when x = init ->
+            changeHelper (prev @ [ curr ]) next.Head next.Tail (List(prev @ (change :: next)) :: acc)
         | (_, _, []) -> acc
-        | (_, _, _) -> changeHelper (prev @ [curr]) next.Head next.Tail acc
+        | (_, _, _) -> changeHelper (prev @ [ curr ]) next.Head next.Tail acc
+
     let convertedList = getList list
     changeHelper [] convertedList.Head convertedList.Tail []
 
@@ -131,7 +133,17 @@ let evalAppend l = List.concat l
 (* Variable Eval *)
 let evalVar name =
     match name with
-    | "board" -> List([Num 1; Num 1; Num 1; Num 0; Num 0; Num 0; Num 0; Num 0; Num 0; ])
+    | "board" ->
+        List
+            ([ Num 1
+               Num 1
+               Num 1
+               Num 0
+               Num 0
+               Num 0
+               Num 0
+               Num 0
+               Num 0 ])
     | _ -> Variable name
 
 
@@ -153,6 +165,6 @@ let rec eval e =
     | List l -> List(List.map eval l)
     | Operation o -> Operation o
     | ValOp(i, b) -> evalVal (getNum (eval i)) (getList (eval b))
-    | WinDef(p, sf) -> WinDef(p,sf)
-    | ChangeOp(i,c,b) -> List(evalAllChanges (eval i) (eval c) (eval b))
+    | WinDef(p, sf) -> WinDef(p, sf)
+    | ChangeOp(i, c, b) -> List(evalAllChanges (eval i) (eval c) (eval b))
     | AppendOp l -> List(evalAppend (List.map (eval >> getList) l))

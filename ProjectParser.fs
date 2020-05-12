@@ -23,8 +23,8 @@ type Expr =
     | AppendOp of Expr list
 
 (* HELPER FUNCTIONS *)
-let makeNum (n : int) = Num n
-let makeVar (v : string) = Variable v
+let makeNum (n: int) = Num n
+let makeVar (v: string) = Variable v
 
 (* HELPER COMBINATORS *)
 
@@ -56,14 +56,15 @@ let pFalse = pstr "False" <|> pstr "false" |>> (fun c -> Bool(false)) <!> "pFals
 let pBool = pTrue <|> pFalse <!> "pBool"
 
 // Adapted from Course Material
-let pPositiveNumber =
-    pmany1 pdigit
-    <!> "pPositiveNumber"
+let pPositiveNumber = pmany1 pdigit <!> "pPositiveNumber"
 
-let pNegativeNumber =
-    pright (pchar '-') (pmany1 pdigit) |>> (fun (ds) -> '-'::ds) <!> "pNegativeNumber"
+let pNegativeNumber = pright (pchar '-') (pmany1 pdigit) |>> (fun ds -> '-' :: ds) <!> "pNegativeNumber"
 
-let pNumber = (pPositiveNumber <|> pNegativeNumber) |>> (stringify >> int >> makeNum) <!> "pNumber"
+let pNumber =
+    (pPositiveNumber <|> pNegativeNumber) |>> (stringify
+                                               >> int
+                                               >> makeNum)
+    <!> "pNumber"
 
 let pNeither = pstr "Neither" |>> (fun c -> Player(0)) <!> "Neither"
 
@@ -73,10 +74,7 @@ let pPlayer2 = pstr "Player2" |>> (fun c -> Player(2)) <!> "pPlayer2"
 
 let pPlayer = pPlayer1 <|> pPlayer2 <|> pNeither <!> "pPlayer"
 
-let pVariable =
-    pmany1 (pletter <|> pchar '?')
-    |>> (stringify >> makeVar)
-    <!> "pVariable"
+let pVariable = pmany1 (pletter <|> pchar '?') |>> (stringify >> makeVar) <!> "pVariable"
 
 (*
  * Parses a specific operation in parenthases
@@ -93,55 +91,46 @@ let pOr = funCall "or" |>> OrOp <!> "pOr"
 let pList = inParens (pstr "list") |>> (fun a -> List([])) <|> (funCall "list" |>> List) <!> "pList"
 
 let pLen =
-    funCall "len"
-    |>> (fun r ->
-            match List.length r with
-            | 1 -> LenOp(List.head r)
-            | _ -> failwith "Length statements must have 1 argument"
-        )
+    funCall "len" |>> (fun r ->
+    match List.length r with
+    | 1 -> LenOp(List.head r)
+    | _ -> failwith "Length statements must have 1 argument")
     <!> "pLen"
 
 let pIf =
-    funCall "if"
-    |>> (fun r ->
-            match r.Length with
-            | 3 -> IfOp(r.[0], r.[1], r.[2])
-            | _ -> failwith "If statements must have 3 arguments"
-        )
+    funCall "if" |>> (fun r ->
+    match r.Length with
+    | 3 -> IfOp(r.[0], r.[1], r.[2])
+    | _ -> failwith "If statements must have 3 arguments")
     <!> "pIf"
 
 let pWins =
-    funCall "defWin"
-    |>> (fun r ->
-            match r.Length with
-            | 2 -> WinDef(r.[0], r.[1])
-            | _ -> failwith "defWin statements must have 2 arguments"
-        )
+    funCall "defWin" |>> (fun r ->
+    match r.Length with
+    | 2 -> WinDef(r.[0], r.[1])
+    | _ -> failwith "defWin statements must have 2 arguments")
     <!> "pWins"
 
 let pChanges =
-    funCall "changeList"
-    |>> (fun r ->
-            match r.Length with
-            | 3 -> ChangeOp(r.[0], r.[1], r.[2])
-            | _ -> failwith "changeList statements must have 2 arguments"
-        )
+    funCall "changeList" |>> (fun r ->
+    match r.Length with
+    | 3 -> ChangeOp(r.[0], r.[1], r.[2])
+    | _ -> failwith "changeList statements must have 2 arguments")
     <!> "pChangeList"
 
-let pAppend =
-    funCall "append" |>> AppendOp
-    <!> "pAppend"
+let pAppend = funCall "append" |>> AppendOp <!> "pAppend"
 
 let pVal =
     funCall "val" |>> (fun r ->
-        match r.Length with
-        | 2 -> ValOp(r.[0], r.[1])
-        | _ -> failwith "val statements must have 2 arguments")
+    match r.Length with
+    | 2 -> ValOp(r.[0], r.[1])
+    | _ -> failwith "val statements must have 2 arguments")
     <!> "pVal"
 
 let pNot = inParens (pright (pstr "not ") expr) |>> (fun a -> NotOp(a)) <!> "pNot"
 
-let pBuiltIn = pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot <|> pLen <|> pWins <|> pChanges <|> pAppend <!> "pBuiltIn"
+let pBuiltIn =
+    pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot <|> pLen <|> pWins <|> pChanges <|> pAppend <!> "pBuiltIn"
 
 let pOp =
     pstr "+" <|> pstr "/" <|> pstr "-" <|> pstr "*" <|> pstr "=" <|> pstr ">=" <|> pstr "<=" <|> pstr "<" <|> pstr ">"
