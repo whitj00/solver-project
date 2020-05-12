@@ -48,7 +48,8 @@ let pFalse = pstr "False" <|> pstr "false" |>> (fun c -> Bool(false)) <!> "pFals
 let pBool = pTrue <|> pFalse <!> "pBool"
 
 // Adapted from Course Material
-let pNumber = pseq (pchar '-' <|> pdigit) (pmany0 pdigit) (fun(a,b) -> Num(int (stringify (a::b)))) <!> "pNumber"
+let pNumber =
+    pseq (pchar '-' <|> pdigit) (pmany0 pdigit) (fun (a, b) -> Num(int (stringify (a :: b)))) <!> "pNumber"
 
 let pNeither = pstr "Neither" |>> (fun c -> Player(0)) <!> "Neither"
 
@@ -72,34 +73,29 @@ let pAnd = funCall "and" |>> (fun a -> AndOp(a)) <!> "pAnd"
 
 let pOr = funCall "or" |>> (fun a -> OrOp(a)) <!> "pOr"
 
-let pList =
-        inParens (pstr "list") |>> (fun a -> List([]))
-        <|> (funCall "list" |>> (fun a -> List(a)))
-        <!> "pList"
+let pList = inParens (pstr "list") |>> (fun a -> List([])) <|> (funCall "list" |>> (fun a -> List(a))) <!> "pList"
 
 let pIf =
-    funCall "if"
-    |>> (fun r ->
-                if r.Length = 3
-                then IfOp(r)
-                else failwith "If statements must have 3 arguments"
-        )
+    funCall "if" |>> (fun r ->
+    if r.Length = 3
+    then IfOp(r)
+    else failwith "If statements must have 3 arguments")
     <!> "pIf"
 
 let pVal =
-    funCall "val"
-    |>> (fun r ->
-                if r.Length = 2
-                then ValOp(r.[0], r.[1])
-                else failwith "val statements must have 2 arguments"
-        )
+    funCall "val" |>> (fun r ->
+    if r.Length = 2
+    then ValOp(r.[0], r.[1])
+    else failwith "val statements must have 2 arguments")
     <!> "pVal"
 
 let pNot = inParens (pright (pstr "not ") expr) |>> (fun a -> NotOp(a)) <!> "pNot"
 
 let pBuiltIn = pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot
 
-let pOp = pstr "+" <|> pstr "/" <|> pstr "-" <|> pstr "*" <|> pstr "=" <|> pstr ">=" <|> pstr "<=" <|> pstr "<" <|> pstr ">" |>> (fun c -> Operation(c)) <!> "pOp"
+let pOp =
+    pstr "+" <|> pstr "/" <|> pstr "-" <|> pstr "*" <|> pstr "=" <|> pstr ">=" <|> pstr "<=" <|> pstr "<" <|> pstr ">"
+    |>> (fun c -> Operation(c)) <!> "pOp"
 
 let pFunctionName = pOp <|> pVariable <!> "pFunctionName"
 
@@ -116,10 +112,10 @@ let manyExpr =
 let grammar = pright pws0 (pleft manyExpr peof) <!> "grammar"
 
 (*From course material*)
-let parse input : Expr option =
+let parse input: Expr option =
     let input' = prepare input
     match grammar input' with
-    | Success(res,_)     -> Some res
+    | Success(res, _) -> Some res
     | Failure(pos, rule) ->
         printfn "Invalid expression."
         let msg = sprintf "Cannot parse input at pos %d in rule '%s':" pos rule
@@ -131,15 +127,21 @@ let rec prettyPrint ast =
     match ast with
     | Num n -> string n
     | Bool b -> string b
-    | Player n -> if n = 1 then "PlayerOne" elif n = 2 then "PlayerTwo" else "Neither"
+    | Player n ->
+        if n = 1 then "PlayerOne"
+        elif n = 2 then "PlayerTwo"
+        else "Neither"
     | SavedApp f -> "{Saved Application: " + prettyPrint f + " }"
-    | Application(ex, el) -> "{Apply " + prettyPrint ex + " to (" + String.concat " " (List.map prettyPrint el) + ")}"
+    | Application(ex, el) ->
+        "{Apply " + prettyPrint ex + " to (" + String.concat " " (List.map prettyPrint el) + ")}"
     | Variable s -> s
     | AndOp al -> "{AndOp: " + String.concat " & " (List.map prettyPrint al) + "}"
     | OrOp ol -> "{OrOp: " + String.concat " || " (List.map prettyPrint ol) + "}"
-    | IfOp il -> "{IfOp: if: " + prettyPrint il.[0] + ", then: " + prettyPrint il.[1] + ", else: " + prettyPrint il.[2] + "}"
+    | IfOp il ->
+        "{IfOp: if: " + prettyPrint il.[0] + ", then: " + prettyPrint il.[1] + ", else: " + prettyPrint il.[2] + "}"
     | NotOp o -> "{Not: " + prettyPrint o + "}"
-    | Program p -> String.concat "\n\n" (List.map prettyPrint p)
+    | Program p ->
+        String.concat "\n\n" (List.map prettyPrint p)
     | Operation o -> o
     | List l -> "(" + String.concat ", " (List.map prettyPrint l) + ")"
     | _ -> "no print method known"

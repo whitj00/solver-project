@@ -17,7 +17,7 @@ let truthy (v: Expr): bool =
     match v with
     | Bool b -> b
     | Num n -> n > 0
-    | _ -> failwith ("Value " + prettyPrint v +  " is not truthy/falsy")
+    | _ -> failwith ("Value " + prettyPrint v + " is not truthy/falsy")
 
 let rec evalAnd (al: Expr list): bool =
     if List.isEmpty al then true
@@ -37,30 +37,32 @@ let rec evalIf (il: Expr list): Expr =
     else il.[2]
 
 let rec evalMultiply nums =
-    if List.isEmpty nums then 1
+    if List.isEmpty nums
+    then 1
     else nums.[0] * (evalMultiply (List.tail nums))
 
 let rec evalAdd nums =
-    if List.isEmpty nums then 0
-    else nums.[0] + (evalAdd (List.tail nums))
+    if List.isEmpty nums then 0 else nums.[0] + (evalAdd (List.tail nums))
 
 let rec evalDivide (nums: int list) =
-    if List.isEmpty nums then 1
+    if List.isEmpty nums
+    then 1
     else List.head nums / evalMultiply (List.tail nums)
 
 let rec evalSubtract nums =
-    if List.isEmpty nums then 0
-    else nums.[0] - (evalAdd (List.tail nums))
+    if List.isEmpty nums then 0 else nums.[0] - (evalAdd (List.tail nums))
 
 let rec evalEq nums =
-    let rec eqHelper (fv : int) (ov : bool) (nums : Expr list) (isInt : bool) =
-        if List.isEmpty nums then true
+    let rec eqHelper (fv: int) (ov: bool) (nums: Expr list) (isInt: bool) =
+        if List.isEmpty nums then
+            true
         else
             match List.head nums with
             | Num n -> isInt && (n = fv) && eqHelper fv false (List.tail nums) true
             | Bool n -> (not isInt) && (n = ov) && eqHelper 0 ov (List.tail nums) false
             | _ -> failwith ("Eq error: not a bool/int: " + prettyPrint (List.head nums))
-    if List.isEmpty nums then failwith "Eq takes at least one argument"
+    if List.isEmpty nums then
+        failwith "Eq takes at least one argument"
     else
         match List.head nums with
         | Num n -> (eqHelper n false (List.tail nums) true)
@@ -68,7 +70,8 @@ let rec evalEq nums =
         | _ -> failwith ("Invalid number: " + prettyPrint (List.head nums))
 
 let rec evalCompare (nums: int list) op: bool =
-    if List.length nums < 2 then true
+    if List.length nums < 2
+    then true
     else (op nums.[0] nums.[1]) && (evalCompare (List.tail nums) op)
 
 let evalLt nums = evalCompare nums (<)
@@ -98,11 +101,11 @@ let evalApp a: Expr =
     | Operation o -> evalMath o (List.tail a)
     | _ -> failwith "Invalid Function Name"
 
-let evalNot op : bool =
-    not (truthy op)
+let evalNot op: bool = not (truthy op)
 
 let evalVal index board =
-    if index < List.length board then board.[index]
+    if index < List.length board
+    then board.[index]
     else failwith ("Index " + string index + " is out-of-bounds")
 
 let rec eval e =
@@ -120,4 +123,4 @@ let rec eval e =
     | Program p -> Program(List.map eval p)
     | List l -> List(List.map eval l)
     | Operation o -> Operation o
-    | ValOp (i, b) -> evalVal (getNum (eval i)) (getList (eval b))
+    | ValOp(i, b) -> evalVal (getNum (eval i)) (getList (eval b))

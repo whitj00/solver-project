@@ -1,4 +1,4 @@
-﻿open System
+open System
 open Parser
 open ProjectParser
 open ProjectInterpreter
@@ -14,7 +14,7 @@ let rec repl() =
         let ast_opt = parse input
         match ast_opt with
         | Some ast -> printfn "%A" (eval ast)
-        | None     -> ()
+        | None -> ()
         repl()
 
 [<EntryPoint>]
