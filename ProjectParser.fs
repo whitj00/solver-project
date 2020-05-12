@@ -7,7 +7,7 @@ type Expr =
     | Operation of string
     | AndOp of Expr list
     | OrOp of Expr list
-    | IfOp of Expr list
+    | IfOp of Expr * Expr * Expr
     | NotOp of Expr
     | ValOp of Expr * Expr
     | Variable of string
@@ -81,10 +81,12 @@ let pOr = funCall "or" |>> (fun a -> OrOp(a)) <!> "pOr"
 let pList = inParens (pstr "list") |>> (fun a -> List([])) <|> (funCall "list" |>> (fun a -> List(a))) <!> "pList"
 
 let pIf =
-    funCall "if" |>> (fun r ->
-    if r.Length = 3
-    then IfOp(r)
-    else failwith "If statements must have 3 arguments")
+    funCall "if"
+    |>> (fun r ->
+            match r.Length with
+            | 3 -> IfOp(r.[0], r.[1], r.[2])
+            | _ -> failwith "If statements must have 3 arguments"
+        )
     <!> "pIf"
 
 let pVal =
@@ -144,8 +146,6 @@ let rec prettyPrint ast =
         "{Apply " + prettyPrint ex + " to (" + String.concat " " (List.map prettyPrint el) + ")}"
     | AndOp al -> "{AndOp: " + String.concat " & " (List.map prettyPrint al) + "}"
     | OrOp ol -> "{OrOp: " + String.concat " || " (List.map prettyPrint ol) + "}"
-    | IfOp il ->
-        "{IfOp: if: " + prettyPrint il.[0] + ", then: " + prettyPrint il.[1] + ", else: " + prettyPrint il.[2] + "}"
     | NotOp o -> "{Not: " + prettyPrint o + "}"
     | Program p ->
         String.concat "\n\n" (List.map prettyPrint p)
