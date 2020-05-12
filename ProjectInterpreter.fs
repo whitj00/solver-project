@@ -23,14 +23,16 @@ let truthy (v: Expr): bool =
 
 (* Boolean Evaluators *)
 let rec evalAnd (al: Expr list): bool =
-    if List.isEmpty al then true
+    if List.isEmpty al then
+        true
     else
         match truthy (List.head al) with
         | true -> evalAnd (List.tail al)
         | false -> false
 
 let rec evalOr (ol: Expr list): bool =
-    if List.isEmpty ol then false
+    if List.isEmpty ol then
+        false
     else
         match truthy (List.head ol) with
         | true -> true
@@ -64,7 +66,8 @@ let rec evalEq nums =
 
 let rec evalCompare (nums: int list) op: bool =
     match List.length nums with
-    | (0 | 1) -> true
+    | (0
+    | 1) -> true
     | _ -> (op nums.[0] nums.[1]) && (evalCompare (List.tail nums) op)
 
 let evalLt nums = evalCompare nums (<)
@@ -133,7 +136,7 @@ let rec eval e =
     | Variable s -> Variable s
     | AndOp al -> Bool(evalAnd (List.map eval al))
     | OrOp ol -> Bool(evalOr (List.map eval ol))
-    | IfOp (i,t,e) -> eval (evalIf (eval i, t, e))
+    | IfOp(i, t, e) -> eval (evalIf (eval i, t, e))
     | NotOp o -> Bool(evalNot (eval o))
     | Program p -> Program(List.map eval p)
     | List l -> List(List.map eval l)
