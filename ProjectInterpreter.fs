@@ -66,8 +66,8 @@ let rec evalEq nums =
 
 let rec evalCompare (nums: int list) op: bool =
     match List.length nums with
-    | (0
-    | 1) -> true
+    | 0
+    | 1 -> true
     | _ -> (op nums.[0] nums.[1]) && (evalCompare (List.tail nums) op)
 
 let evalLt nums = evalCompare nums (<)
