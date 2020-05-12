@@ -48,8 +48,13 @@ let pFalse = pstr "False" <|> pstr "false" |>> (fun c -> Bool(false)) <!> "pFals
 let pBool = pTrue <|> pFalse <!> "pBool"
 
 // Adapted from Course Material
-let pNumber =
-    pseq (pchar '-' <|> pdigit) (pmany0 pdigit) (fun (a, b) -> Num(int (stringify (a :: b)))) <!> "pNumber"
+let pPositiveNumber =
+    pmany1 pdigit |>> (fun ds -> Num (int (stringify ds))) <!> "pNegativeNumber"
+
+let pNegativeNumber =
+    pright (pchar '-') (pmany1 pdigit) |>> (fun (ds) -> Num(int (stringify ('-'::ds)))) <!> "pPositiveNumber"
+
+let pNumber = pPositiveNumber <|> pNegativeNumber <!> "pNumber"
 
 let pNeither = pstr "Neither" |>> (fun c -> Player(0)) <!> "Neither"
 
@@ -123,18 +128,20 @@ let parse input: Expr option =
         printf "%s" diag
         None
 
+// TODO: Rewrite
 let rec prettyPrint ast =
     match ast with
     | Num n -> string n
     | Bool b -> string b
-    | Player n ->
-        if n = 1 then "PlayerOne"
-        elif n = 2 then "PlayerTwo"
-        else "Neither"
+    | Operation o -> o
+    | Variable s -> s
+    | Player 1 -> "Player1"
+    | Player 2 -> "Player2"
+    | Player _ -> "Neither"
+    | List l -> "(" + String.concat ", " (List.map prettyPrint l) + ")"
     | SavedApp f -> "{Saved Application: " + prettyPrint f + " }"
     | Application(ex, el) ->
         "{Apply " + prettyPrint ex + " to (" + String.concat " " (List.map prettyPrint el) + ")}"
-    | Variable s -> s
     | AndOp al -> "{AndOp: " + String.concat " & " (List.map prettyPrint al) + "}"
     | OrOp ol -> "{OrOp: " + String.concat " || " (List.map prettyPrint ol) + "}"
     | IfOp il ->
@@ -142,6 +149,4 @@ let rec prettyPrint ast =
     | NotOp o -> "{Not: " + prettyPrint o + "}"
     | Program p ->
         String.concat "\n\n" (List.map prettyPrint p)
-    | Operation o -> o
-    | List l -> "(" + String.concat ", " (List.map prettyPrint l) + ")"
-    | _ -> "no print method known"
+    | _ -> failwith "No Print Method Known"
