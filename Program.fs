@@ -1,4 +1,4 @@
-open System
+﻿open System
 open Parser
 open ProjectParser
 open ProjectInterpreter
@@ -19,5 +19,6 @@ let rec repl() =
 
 [<EntryPoint>]
 let main argv =
+    //printfn "%A" (List.collect (evalAllChanges (Num 0) (Num 1)) (List.collect (evalAllChanges (Num 0) (Num 2)) (List.collect (evalAllChanges (Num 0) (Num 1)) (List.collect (evalAllChanges (Num 0) (Num 2)) (List.collect (evalAllChanges (Num 0) (Num 1)) (List.collect (evalAllChanges (Num 0) (Num 2)) (List.collect (evalAllChanges (Num 0) (Num 1)) (List.collect (evalAllChanges (Num 0) (Num 2)) (evalAllChanges (Num 0) (Num 1) (List([Num 0; Num 0; Num 0; Num 0; Num 0; Num 0; Num 0; Num 0; Num 0])))))))))))
     repl()
     0

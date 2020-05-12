@@ -48,21 +48,10 @@ let evalIf (i, t, e): Expr =
 (* Comparison Evaluators *)
 
 let rec evalEq nums =
-    let rec eqHelper (fv: int) (ov: bool) (nums: Expr list) (isInt: bool) =
-        if List.isEmpty nums then
-            true
-        else
-            match List.head nums with
-            | Num n -> isInt && (n = fv) && eqHelper fv false (List.tail nums) true
-            | Bool n -> (not isInt) && (n = ov) && eqHelper 0 ov (List.tail nums) false
-            | _ -> failwith ("Eq error: not a bool/int: " + prettyPrint (List.head nums))
-    if List.isEmpty nums then
-        failwith "Eq takes at least one argument"
-    else
-        match List.head nums with
-        | Num n -> (eqHelper n false (List.tail nums) true)
-        | Bool b -> (eqHelper 0 b (List.tail nums) false)
-        | _ -> failwith ("Invalid number: " + prettyPrint (List.head nums))
+    match List.length nums with
+    | 0 -> failwith "Eq takes at least one argument"
+    | 1 -> true
+    | _ -> (nums.[0] = nums.[1]) && evalEq (List.tail nums)
 
 let rec evalCompare (nums: int list) op: bool =
     match List.length nums with
@@ -98,16 +87,15 @@ let rec evalSubtract nums =
     | _ -> nums.[0] - (evalAdd (List.tail nums))
 
 let evalMath op nums =
-    let intNums = getNums nums
     match op with
-    | "*" -> Num(evalMultiply intNums)
-    | "+" -> Num(evalAdd intNums)
-    | "/" -> Num(evalDivide intNums)
-    | "-" -> Num(evalSubtract intNums)
-    | "<" -> Bool(evalLt intNums)
-    | ">" -> Bool(evalGt intNums)
-    | "<=" -> Bool(evalLte intNums)
-    | ">=" -> Bool(evalGte intNums)
+    | "*" -> Num(evalMultiply (getNums nums))
+    | "+" -> Num(evalAdd (getNums nums))
+    | "/" -> Num(evalDivide (getNums nums))
+    | "-" -> Num(evalSubtract (getNums nums))
+    | "<" -> Bool(evalLt (getNums nums))
+    | ">" -> Bool(evalGt (getNums nums))
+    | "<=" -> Bool(evalLte (getNums nums))
+    | ">=" -> Bool(evalGte (getNums nums))
     | "=" -> Bool(evalEq nums)
     | _ -> failwith "Invalid Operation"
 
@@ -126,19 +114,45 @@ let evalVal index board =
     | true -> board.[index]
     | false -> failwith ("Index " + string index + " out-of-bounds")
 
+let evalLen board = List.length (getList board)
+
+let evalAllChanges init change list =
+    let rec changeHelper (prev : Expr list) (curr: Expr) next acc =
+        match (prev,curr,next) with
+        | (_, x, []) when x = init -> (List(prev @ [change]))::acc
+        | (_, x, _) when x = init -> changeHelper (prev @ [curr]) next.Head next.Tail (List(prev @ (change::next))::acc)
+        | (_, _, []) -> acc
+        | (_, _, _) -> changeHelper (prev @ [curr]) next.Head next.Tail acc
+    let convertedList = getList list
+    changeHelper [] convertedList.Head convertedList.Tail []
+
+let evalAppend l = List.concat l
+
+(* Variable Eval *)
+let evalVar name =
+    match name with
+    | "board" -> List([Num 1; Num 1; Num 1; Num 0; Num 0; Num 0; Num 0; Num 0; Num 0; ])
+    | _ -> Variable name
+
+
+//maybe add state as a parameter here
 let rec eval e =
     match e with
     | Num n -> Num n
     | Bool b -> Bool b
     | Player n -> Player n
     | SavedApp f -> SavedApp f
+    | Variable s -> evalVar s
     | Application(ex, el) -> evalApp (eval ex :: List.map eval el)
-    | Variable s -> Variable s
     | AndOp al -> Bool(evalAnd (List.map eval al))
     | OrOp ol -> Bool(evalOr (List.map eval ol))
     | IfOp(i, t, e) -> eval (evalIf (eval i, t, e))
     | NotOp o -> Bool(evalNot (eval o))
+    | LenOp l -> Num(evalLen (eval l))
     | Program p -> Program(List.map eval p)
     | List l -> List(List.map eval l)
     | Operation o -> Operation o
     | ValOp(i, b) -> evalVal (getNum (eval i)) (getList (eval b))
+    | WinDef(p, sf) -> WinDef(p,sf)
+    | ChangeOp(i,c,b) -> List(evalAllChanges (eval i) (eval c) (eval b))
+    | AppendOp l -> List(evalAppend (List.map (eval >> getList) l))

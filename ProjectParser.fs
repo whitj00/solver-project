@@ -10,6 +10,7 @@ type Expr =
     | IfOp of Expr * Expr * Expr
     | NotOp of Expr
     | ValOp of Expr * Expr
+    | LenOp of Expr
     | Variable of string
     | Bool of bool
     | Application of Expr * Expr list
@@ -17,6 +18,13 @@ type Expr =
     | Player of int
     | Program of Expr list
     | List of Expr list
+    | WinDef of Expr * Expr
+    | ChangeOp of Expr * Expr * Expr
+    | AppendOp of Expr list
+
+(* HELPER FUNCTIONS *)
+let makeNum (n : int) = Num n
+let makeVar (v : string) = Variable v
 
 (* HELPER COMBINATORS *)
 
@@ -26,7 +34,7 @@ type Expr =
  * @param p   A parser.
  * @param sep A separator parser.
  *)
-let pmany2sep p sep = pseq p (pmany1 (pright sep p)) (fun (x, xs) -> x :: xs) <!> "pmany2sep"
+let pmany2sep p sep = pseq p (pmany0 (pright sep p)) (fun (x, xs) -> x :: xs) <!> "pmany2sep"
 
 (*
  * From Course Material
@@ -49,12 +57,13 @@ let pBool = pTrue <|> pFalse <!> "pBool"
 
 // Adapted from Course Material
 let pPositiveNumber =
-    pmany1 pdigit |>> (fun ds -> Num (int (stringify ds))) <!> "pNegativeNumber"
+    pmany1 pdigit
+    <!> "pPositiveNumber"
 
 let pNegativeNumber =
-    pright (pchar '-') (pmany1 pdigit) |>> (fun (ds) -> Num(int (stringify ('-'::ds)))) <!> "pPositiveNumber"
+    pright (pchar '-') (pmany1 pdigit) |>> (fun (ds) -> '-'::ds) <!> "pNegativeNumber"
 
-let pNumber = pPositiveNumber <|> pNegativeNumber <!> "pNumber"
+let pNumber = (pPositiveNumber <|> pNegativeNumber) |>> (stringify >> int >> makeNum) <!> "pNumber"
 
 let pNeither = pstr "Neither" |>> (fun c -> Player(0)) <!> "Neither"
 
@@ -64,7 +73,10 @@ let pPlayer2 = pstr "Player2" |>> (fun c -> Player(2)) <!> "pPlayer2"
 
 let pPlayer = pPlayer1 <|> pPlayer2 <|> pNeither <!> "pPlayer"
 
-let pVariable = pmany1 (pletter <|> pchar '?') |>> (fun c -> Variable(stringify c)) <!> "pVariable"
+let pVariable =
+    pmany1 (pletter <|> pchar '?')
+    |>> (stringify >> makeVar)
+    <!> "pVariable"
 
 (*
  * Parses a specific operation in parenthases
@@ -74,11 +86,20 @@ let pVariable = pmany1 (pletter <|> pchar '?') |>> (fun c -> Variable(stringify 
  *)
 let funCall op = inParens (pright (pstr (op + " ")) (pmany2sep expr pws1)) <!> "funCall"
 
-let pAnd = funCall "and" |>> (fun a -> AndOp(a)) <!> "pAnd"
+let pAnd = funCall "and" |>> AndOp <!> "pAnd"
 
-let pOr = funCall "or" |>> (fun a -> OrOp(a)) <!> "pOr"
+let pOr = funCall "or" |>> OrOp <!> "pOr"
 
-let pList = inParens (pstr "list") |>> (fun a -> List([])) <|> (funCall "list" |>> (fun a -> List(a))) <!> "pList"
+let pList = inParens (pstr "list") |>> (fun a -> List([])) <|> (funCall "list" |>> List) <!> "pList"
+
+let pLen =
+    funCall "len"
+    |>> (fun r ->
+            match List.length r with
+            | 1 -> LenOp(List.head r)
+            | _ -> failwith "Length statements must have 1 argument"
+        )
+    <!> "pLen"
 
 let pIf =
     funCall "if"
@@ -89,16 +110,38 @@ let pIf =
         )
     <!> "pIf"
 
+let pWins =
+    funCall "defWin"
+    |>> (fun r ->
+            match r.Length with
+            | 2 -> WinDef(r.[0], r.[1])
+            | _ -> failwith "defWin statements must have 2 arguments"
+        )
+    <!> "pWins"
+
+let pChanges =
+    funCall "changeList"
+    |>> (fun r ->
+            match r.Length with
+            | 3 -> ChangeOp(r.[0], r.[1], r.[2])
+            | _ -> failwith "changeList statements must have 2 arguments"
+        )
+    <!> "pChangeList"
+
+let pAppend =
+    funCall "append" |>> AppendOp
+    <!> "pAppend"
+
 let pVal =
     funCall "val" |>> (fun r ->
-    if r.Length = 2
-    then ValOp(r.[0], r.[1])
-    else failwith "val statements must have 2 arguments")
+        match r.Length with
+        | 2 -> ValOp(r.[0], r.[1])
+        | _ -> failwith "val statements must have 2 arguments")
     <!> "pVal"
 
 let pNot = inParens (pright (pstr "not ") expr) |>> (fun a -> NotOp(a)) <!> "pNot"
 
-let pBuiltIn = pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot
+let pBuiltIn = pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot <|> pLen <|> pWins <|> pChanges <|> pAppend <!> "pBuiltIn"
 
 let pOp =
     pstr "+" <|> pstr "/" <|> pstr "-" <|> pstr "*" <|> pstr "=" <|> pstr ">=" <|> pstr "<=" <|> pstr "<" <|> pstr ">"
@@ -149,4 +192,9 @@ let rec prettyPrint ast =
     | NotOp o -> "{Not: " + prettyPrint o + "}"
     | Program p ->
         String.concat "\n\n" (List.map prettyPrint p)
-    | _ -> failwith "No Print Method Known"
+    | AppendOp _ -> "Append"
+    | ChangeOp _ -> "Change"
+    | IfOp _ -> "If"
+    | LenOp _ -> "Len"
+    | ValOp _ -> "Val"
+    | WinDef _ -> "WinDef"
