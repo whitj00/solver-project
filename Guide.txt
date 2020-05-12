@@ -35,6 +35,8 @@ Lists can be empty:
 Booleans
 --------
 
+Any positive integer is truthy
+
 Boolean operations are available for AND, OR, NOT, and EQUALS
     (and true true)  -> true
     (and true false) -> false
