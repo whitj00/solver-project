@@ -1,4 +1,4 @@
-﻿open System
+open System
 open Parser
 open ProjectParser
 open ProjectInterpreter
@@ -21,7 +21,7 @@ let printEval ast =
         printfn "%A" (eval ast)
     with ex -> printfn "Exception! %s " (ex.Message)
 
-let parseAndEval input = 
+let parseAndEval input =
     let ast_opt =
         try
             (parse input)
@@ -45,7 +45,5 @@ let rec repl() =
 
 [<EntryPoint>]
 let main argv =
-    if not (Array.isEmpty argv)
-    then parseAndEval(argv.[0])
-    else repl()
+    if not (Array.isEmpty argv) then parseAndEval (argv.[0]) else repl()
     0
