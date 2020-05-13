@@ -3,6 +3,10 @@ open Parser
 open ProjectParser
 open ProjectInterpreter
 
+let printEval ast =
+    try printfn "%A" (eval ast)
+    with ex -> printfn "Exception! %s " (ex.Message)
+
 (*From course material*)
 let rec repl() =
     printf "Enter an expression (or 'quit' to quit): "
@@ -13,7 +17,7 @@ let rec repl() =
     else
         let ast_opt = parse input
         match ast_opt with
-        | Some ast -> printfn "%A" (eval ast)
+        | Some ast -> (printEval ast)
         | None -> ()
         repl()
 
