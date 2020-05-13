@@ -1,14 +1,27 @@
-open System
+﻿open System
 open Parser
 open ProjectParser
 open ProjectInterpreter
+
+
+(*From course material*)
+let parse input: Expr option =
+    let input' = prepare input
+    match grammar input' with
+    | Success(res, _) -> Some res
+    | Failure(pos, rule) ->
+        printfn "Invalid expression."
+        let msg = sprintf "Cannot parse input at pos %d in rule '%s':" pos rule
+        let diag = diagnosticMessage 20 pos input msg
+        printf "%s" diag
+        None
 
 let printEval ast =
     try
         printfn "%A" (eval ast)
     with ex -> printfn "Exception! %s " (ex.Message)
 
-let parseAndEval input =
+let parseAndEval input = 
     let ast_opt =
         try
             (parse input)
@@ -19,7 +32,7 @@ let parseAndEval input =
     | Some ast -> (printEval ast)
     | None -> ()
 
-(*Derived from course material*)
+(*Derived course material*)
 let rec repl() =
     printf "Enter an expression (or 'quit' to quit): "
     let input = System.Console.ReadLine()
@@ -32,6 +45,7 @@ let rec repl() =
 
 [<EntryPoint>]
 let main argv =
-    //printfn "%A" (List.collect (evalAllChanges (Num 0) (Num 1)) (List.collect (evalAllChanges (Num 0) (Num 2)) (List.collect (evalAllChanges (Num 0) (Num 1)) (List.collect (evalAllChanges (Num 0) (Num 2)) (List.collect (evalAllChanges (Num 0) (Num 1)) (List.collect (evalAllChanges (Num 0) (Num 2)) (List.collect (evalAllChanges (Num 0) (Num 1)) (List.collect (evalAllChanges (Num 0) (Num 2)) (evalAllChanges (Num 0) (Num 1) (List([Num 0; Num 0; Num 0; Num 0; Num 0; Num 0; Num 0; Num 0; Num 0])))))))))))
-    repl()
+    if not (Array.isEmpty argv)
+    then parseAndEval(argv.[0])
+    else repl()
     0
