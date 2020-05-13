@@ -8,7 +8,18 @@ let printEval ast =
         printfn "%A" (eval ast)
     with ex -> printfn "Exception! %s " (ex.Message)
 
-(*From course material*)
+let parseAndEval input =
+    let ast_opt =
+        try
+            (parse input)
+        with ex ->
+            printfn "Exception! %s " (ex.Message)
+            None
+    match ast_opt with
+    | Some ast -> (printEval ast)
+    | None -> ()
+
+(*Derived from course material*)
 let rec repl() =
     printf "Enter an expression (or 'quit' to quit): "
     let input = System.Console.ReadLine()
@@ -16,15 +27,7 @@ let rec repl() =
         printfn "Goodbye!"
         exit 0
     else
-        let ast_opt =
-            try
-                (parse input)
-            with ex ->
-                printfn "Exception! %s " (ex.Message)
-                None
-        match ast_opt with
-        | Some ast -> (printEval ast)
-        | None -> ()
+        parseAndEval input
         repl()
 
 [<EntryPoint>]
