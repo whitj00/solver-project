@@ -1,10 +1,11 @@
-﻿open System
+open System
 open Parser
 open ProjectParser
 open ProjectInterpreter
 
 let printEval ast =
-    try printfn "%A" (eval ast)
+    try
+        printfn "%A" (eval ast)
     with ex -> printfn "Exception! %s " (ex.Message)
 
 (*From course material*)
@@ -15,7 +16,12 @@ let rec repl() =
         printfn "Goodbye!"
         exit 0
     else
-        let ast_opt = try (parse input) with ex -> printfn "Exception! %s " (ex.Message); None
+        let ast_opt =
+            try
+                (parse input)
+            with ex ->
+                printfn "Exception! %s " (ex.Message)
+                None
         match ast_opt with
         | Some ast -> (printEval ast)
         | None -> ()
