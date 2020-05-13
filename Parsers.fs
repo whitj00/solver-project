@@ -276,7 +276,6 @@ let diagnosticMessage(window_sz: int)(failure_pos: int)(buffer: string)(err: str
     let right_idx = windowRightIndex window_sz failure_pos buffer.Length
     let last_nl_left = indexOfLastNewlineLeftWindow left_idx failure_pos buffer
     let first_nl_right = indexOfFirstNewlineRightWindow right_idx failure_pos buffer
-
     // find caret position in last line
     let caret_pos = failure_pos - last_nl_left
 

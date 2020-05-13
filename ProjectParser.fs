@@ -43,7 +43,7 @@ let pmany2sep p sep = pseq p (pmany0 (pright sep p)) (fun (x, xs) -> x :: xs) <!
  * returns.
  * @param p A parser.
  *)
-let inParens p = pbetween (pchar '(') (pchar ')') p <!> "inParens"
+let inParens p = pbetween (pchar '(') (pright pws0 (pchar ')')) p <!> "inParens"
 
 (* Grammar *)
 
