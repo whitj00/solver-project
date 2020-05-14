@@ -151,8 +151,8 @@ let evalVar name =
 let rec eval (state: Expr list) (otherParam: Expr) =
     let getValue expr = snd (eval state expr)
     match otherParam with
-    | Num n     -> state, Num n
-    | Bool b    -> state, Bool b
+    | Num n -> state, Num n
+    | Bool b -> state, Bool b
     | Player n -> state, Player n
     | SavedApp f -> state, SavedApp f
     | Variable s -> state, evalVar s
