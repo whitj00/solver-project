@@ -148,23 +148,24 @@ let evalVar name =
 
 
 //maybe add state as a parameter here
-let rec eval e =
-    match e with
-    | Num n -> Num n
-    | Bool b -> Bool b
-    | Player n -> Player n
-    | SavedApp f -> SavedApp f
-    | Variable s -> evalVar s
-    | Application(ex, el) -> evalApp (eval ex :: List.map eval el)
-    | AndOp al -> Bool(evalAnd (List.map eval al))
-    | OrOp ol -> Bool(evalOr (List.map eval ol))
-    | IfOp(i, t, e) -> eval (evalIf (eval i, t, e))
-    | NotOp o -> Bool(evalNot (eval o))
-    | LenOp l -> Num(evalLen (eval l))
-    | Program p -> Program(List.map eval p)
-    | List l -> List(List.map eval l)
-    | Operation o -> Operation o
-    | ValOp(i, b) -> evalVal (getNum (eval i)) (getList (eval b))
-    | WinDef(p, sf) -> WinDef(p, sf)
-    | ChangeOp(i, c, b) -> List(evalAllChanges (eval i) (eval c) (eval b))
-    | AppendOp l -> List(evalAppend (List.map (eval >> getList) l))
+let rec eval (state: Expr list) (otherParam: Expr) =
+    let getValue expr = snd (eval state expr)
+    match otherParam with
+    | Num n     -> state, Num n
+    | Bool b    -> state, Bool b
+    | Player n -> state, Player n
+    | SavedApp f -> state, SavedApp f
+    | Variable s -> state, evalVar s
+    | Application(ex, el) -> state, evalApp (getValue ex :: List.map getValue el)
+    | AndOp al -> state, Bool(evalAnd (List.map getValue al))
+    | OrOp ol -> state, Bool(evalOr (List.map getValue ol))
+    | IfOp(i, t, e) -> eval state (evalIf (getValue i, getValue t, getValue e))
+    | NotOp o -> state, Bool(evalNot (getValue o))
+    | LenOp l -> state, Num(evalLen (getValue l))
+    | Program p -> state, Program(List.map getValue p)
+    | List l -> state, List(List.map getValue l)
+    | Operation o -> state, Operation o
+    | ValOp(i, b) -> state, evalVal (getNum (getValue i)) (getList (getValue b))
+    | WinDef(p, sf) -> state, WinDef(getValue p, getValue sf)
+    | ChangeOp(i, c, b) -> state, List(evalAllChanges (getValue i) (getValue c) (getValue b))
+    | AppendOp l -> state, List(evalAppend (List.map (getValue >> getList) l))
