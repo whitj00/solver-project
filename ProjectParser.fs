@@ -58,7 +58,7 @@ let pBool = pTrue <|> pFalse <!> "pBool"
 // Adapted from Course Material
 let pPositiveNumber = pmany1 pdigit <!> "pPositiveNumber"
 
-let pNegativeNumber = pright (pchar '-') (pmany1 pdigit) |>> (fun ds -> '-' :: ds) <!> "pNegativeNumber"
+let pNegativeNumber = pright (pchar '-') pPositiveNumber |>> (fun ds -> '-' :: ds) <!> "pNegativeNumber"
 
 let pNumber =
     (pPositiveNumber <|> pNegativeNumber) |>> (stringify

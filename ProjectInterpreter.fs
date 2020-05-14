@@ -148,23 +148,23 @@ let evalVar name =
 
 
 //maybe add state as a parameter here
-let rec eval e =
-    match e with
-    | Num n -> Num n
-    | Bool b -> Bool b
-    | Player n -> Player n
-    | SavedApp f -> SavedApp f
-    | Variable s -> evalVar s
-    | Application(ex, el) -> evalApp (eval ex :: List.map eval el)
-    | AndOp al -> Bool(evalAnd (List.map eval al))
-    | OrOp ol -> Bool(evalOr (List.map eval ol))
-    | IfOp(i, t, e) -> eval (evalIf (eval i, t, e))
-    | NotOp o -> Bool(evalNot (eval o))
-    | LenOp l -> Num(evalLen (eval l))
-    | Program p -> Program(List.map eval p)
-    | List l -> List(List.map eval l)
-    | Operation o -> Operation o
-    | ValOp(i, b) -> evalVal (getNum (eval i)) (getList (eval b))
-    | WinDef(p, sf) -> WinDef(p, sf)
-    | ChangeOp(i, c, b) -> List(evalAllChanges (eval i) (eval c) (eval b))
-    | AppendOp l -> List(evalAppend (List.map (eval >> getList) l))
+let rec eval state otherParam =
+    match otherParam with
+    | Num n     -> state, Num n
+    | Bool b    -> state, Bool b
+    | Player n -> state, Player n
+    | SavedApp f -> state, SavedApp f
+    | Variable s -> state, evalVar s
+    | Application(ex, el) -> state, evalApp (eval ex :: List.map eval el)
+    | AndOp al -> state, Bool(evalAnd (List.map eval state al))
+    | OrOp ol -> state, Bool(evalOr (List.map eval state ol))
+    | IfOp(i, t, e) -> eval state (evalIf (eval state (i, t, e)))
+    | NotOp o -> state, Bool(evalNot (eval state o))
+    | LenOp l -> state, Num(evalLen (eval state l))
+    | Program p -> state, Program(List.map eval (state p))
+    | List l -> List(List.map eval (state l))
+    | Operation o -> state, Operation o
+    | ValOp(i, b) -> state, evalVal (getNum (eval state i)) (getList (eval state b))
+    | WinDef(p, sf) -> state, WinDef(p, sf)
+    | ChangeOp(i, c, b) -> state, List(evalAllChanges (eval state i) (eval state c) (eval state b))
+    | AppendOp l -> state, List(evalAppend (List.map (eval >> getList) l))
