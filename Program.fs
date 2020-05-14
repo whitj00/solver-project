@@ -1,4 +1,4 @@
-open System
+﻿open System
 open Parser
 open ProjectParser
 open ProjectInterpreter
@@ -18,7 +18,7 @@ let parse input: Expr option =
 
 let printEval ast =
     try
-        printfn "%A" (eval ast)
+        printfn "%A" (snd (eval [] ast))
     with ex -> printfn "Exception! %s " (ex.Message)
 
 let parseAndEval input =

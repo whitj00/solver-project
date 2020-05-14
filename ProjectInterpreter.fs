@@ -148,23 +148,24 @@ let evalVar name =
 
 
 //maybe add state as a parameter here
-let rec eval state otherParam =
+let rec eval (state: Expr list) (otherParam: Expr) =
+    let getValue expr = snd (eval state expr)
     match otherParam with
     | Num n     -> state, Num n
     | Bool b    -> state, Bool b
     | Player n -> state, Player n
     | SavedApp f -> state, SavedApp f
     | Variable s -> state, evalVar s
-    | Application(ex, el) -> state, evalApp (eval ex :: List.map eval el)
-    | AndOp al -> state, Bool(evalAnd (List.map eval state al))
-    | OrOp ol -> state, Bool(evalOr (List.map eval state ol))
-    | IfOp(i, t, e) -> eval state (evalIf (eval state (i, t, e)))
-    | NotOp o -> state, Bool(evalNot (eval state o))
-    | LenOp l -> state, Num(evalLen (eval state l))
-    | Program p -> state, Program(List.map eval (state p))
-    | List l -> List(List.map eval (state l))
+    | Application(ex, el) -> state, evalApp (getValue ex :: List.map getValue el)
+    | AndOp al -> state, Bool(evalAnd (List.map getValue al))
+    | OrOp ol -> state, Bool(evalOr (List.map getValue ol))
+    | IfOp(i, t, e) -> eval state (evalIf (getValue i, getValue t, getValue e))
+    | NotOp o -> state, Bool(evalNot (getValue o))
+    | LenOp l -> state, Num(evalLen (getValue l))
+    | Program p -> state, Program(List.map getValue p)
+    | List l -> state, List(List.map getValue l)
     | Operation o -> state, Operation o
-    | ValOp(i, b) -> state, evalVal (getNum (eval state i)) (getList (eval state b))
-    | WinDef(p, sf) -> state, WinDef(p, sf)
-    | ChangeOp(i, c, b) -> state, List(evalAllChanges (eval state i) (eval state c) (eval state b))
-    | AppendOp l -> state, List(evalAppend (List.map (eval >> getList) l))
+    | ValOp(i, b) -> state, evalVal (getNum (getValue i)) (getList (getValue b))
+    | WinDef(p, sf) -> state, WinDef(getValue p, getValue sf)
+    | ChangeOp(i, c, b) -> state, List(evalAllChanges (getValue i) (getValue c) (getValue b))
+    | AppendOp l -> state, List(evalAppend (List.map (getValue >> getList) l))
