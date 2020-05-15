@@ -2,6 +2,8 @@ module ProjectInterpreter
 
 open ProjectParser
 
+let state = Map<string, Expr>
+
 (* HELPER FUNCTIONS *)
 let getNum n =
     match n with
@@ -146,13 +148,17 @@ let evalVar name =
                Num 0 ])
     | _ -> Variable name
 
+let rec evalProgram state expr exprAcc : Expr list =
+    if List.isEmpty expr then exprAcc
+    else
+        let (newState, ret) = eval state (List.head expr)
+        evalProgram newState (List.tail expr) (exprAcc@[ret])
 
-//maybe add state as a parameter here
-let rec eval (state: Expr list) (otherParam: Expr) =
+and eval (state: Expr list) (otherParam: Expr) =
     let getValue expr = snd (eval state expr)
     match otherParam with
-    | Num n     -> state, Num n
-    | Bool b    -> state, Bool b
+    | Num n -> state, Num n
+    | Bool b -> state, Bool b
     | Player n -> state, Player n
     | SavedApp f -> state, SavedApp f
     | Variable s -> state, evalVar s
@@ -162,7 +168,7 @@ let rec eval (state: Expr list) (otherParam: Expr) =
     | IfOp(i, t, e) -> eval state (evalIf (getValue i, getValue t, getValue e))
     | NotOp o -> state, Bool(evalNot (getValue o))
     | LenOp l -> state, Num(evalLen (getValue l))
-    | Program p -> state, Program(List.map getValue p)
+    | Program p -> state, Program(evalProgram state p [])
     | List l -> state, List(List.map getValue l)
     | Operation o -> state, Operation o
     | ValOp(i, b) -> state, evalVal (getNum (getValue i)) (getList (getValue b))
