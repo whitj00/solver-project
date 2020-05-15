@@ -2,8 +2,6 @@ module ProjectInterpreter
 
 open ProjectParser
 
-let state = Map<string, Expr>
-
 (* HELPER FUNCTIONS *)
 let getNum n =
     match n with
@@ -147,7 +145,7 @@ let evalWinDef player (state: Map<string, Expr>) expr =
     match player with
     | Player(1) -> (state.Add ("p1Wins", expr), NoRet)
     | Player(2) -> (state.Add ("p2Wins", expr), NoRet)
-    | Player(0) -> (state.Add ("neitherWin", expr), NoRet)
+    | Player(0) -> (state.Add ("_neitherWin", expr), NoRet)
     | _ -> failwith "Invalid player passed as argument."
 
 let evalMoveDef player (state: Map<string, Expr>) expr =

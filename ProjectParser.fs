@@ -208,3 +208,4 @@ let rec prettyPrint ast =
     | WinDefOp _ -> "defWin"
     | BoardDefOp _ -> "defBoard"
     | MoveDefOp _ -> "defMoves"
+    | NoRet _ -> "NoRet"
