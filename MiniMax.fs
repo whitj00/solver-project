@@ -1,6 +1,7 @@
 module MiniMax
 
 open ProjectParser
+open ProjectInterpreter
 
 let childGen children =
     if List.isEmpty children then None else Some children
@@ -45,3 +46,6 @@ let rec genMaxTree (board: Expr) =
 and genMinTree (board: Expr) =
     let children = List.map genMaxTree (validMoves board)
     MinTree(board, children, minValue (childGen children))
+
+let solve state =
+    let tree = genMaxTree (eval state (Variable("board")))
