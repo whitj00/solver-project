@@ -18,9 +18,12 @@ type Expr =
     | Player of int
     | Program of Expr list
     | List of Expr list
-    | WinDef of Expr * Expr
+    | WinDefOp of Expr * Expr
     | ChangeOp of Expr * Expr * Expr
     | AppendOp of Expr list
+    | BoardDefOp of Expr
+    | MoveDefOp of Expr * Expr
+    | NoRet
 
 (* HELPER FUNCTIONS *)
 let makeNum (n: int) = Num n
@@ -104,12 +107,27 @@ let pIf =
     | _ -> failwith "If statements must have 3 arguments")
     <!> "pIf"
 
-let pWins =
+let pWinDef =
     funCall "defWin" |>> (fun r ->
     match r.Length with
-    | 2 -> WinDef(r.[0], r.[1])
+    | 2 -> WinDefOp(r.[0], r.[1])
     | _ -> failwith "defWin statements must have 2 arguments")
-    <!> "pWins"
+    <!> "pWinDef"
+
+let pBoardDef =
+    funCall "defBoard" |>> (fun r ->
+    match r.Length with
+    | 1 -> BoardDefOp(r.Head)
+    | _ -> failwith "defBoard statements must have 1 argument")
+    <!> "pBoardDef"
+
+
+let pMoveDef =
+    funCall "defMoves" |>> (fun r ->
+    match r.Length with
+    | 2 -> MoveDefOp(r.[0], r.[1])
+    | _ -> failwith "defMove statements must have 2 arguments")
+    <!> "pMoveDef"
 
 let pChanges =
     funCall "changeList" |>> (fun r ->
@@ -130,7 +148,8 @@ let pVal =
 let pNot = inParens (pright (pstr "not ") expr) |>> (fun a -> NotOp(a)) <!> "pNot"
 
 let pBuiltIn =
-    pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot <|> pLen <|> pWins <|> pChanges <|> pAppend <!> "pBuiltIn"
+    pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot <|> pLen <|>
+    pWinDef <|> pChanges <|> pAppend <|> pBoardDef <|> pMoveDef <!> "pBuiltIn"
 
 let pOp =
     pstr "+" <|> pstr "/" <|> pstr "-" <|> pstr "*" <|> pstr "=" <|> pstr ">=" <|> pstr "<=" <|> pstr "<" <|> pstr ">"
@@ -186,4 +205,6 @@ let rec prettyPrint ast =
     | IfOp _ -> "If"
     | LenOp _ -> "Len"
     | ValOp _ -> "Val"
-    | WinDef _ -> "WinDef"
+    | WinDefOp _ -> "defWin"
+    | BoardDefOp _ -> "defBoard"
+    | MoveDefOp _ -> "defMoves"
