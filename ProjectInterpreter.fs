@@ -2,6 +2,8 @@ module ProjectInterpreter
 
 open ProjectParser
 
+let state = Map<string, Expr>
+
 (* HELPER FUNCTIONS *)
 let getNum n =
     match n with
@@ -131,41 +133,57 @@ let evalAllChanges init change list =
 let evalAppend l = List.concat l
 
 (* Variable Eval *)
-let evalVar name =
-    match name with
-    | "board" ->
-        List
-            ([ Num 1
-               Num 1
-               Num 1
-               Num 0
-               Num 0
-               Num 0
-               Num 0
-               Num 0
-               Num 0 ])
-    | _ -> Variable name
+let evalVar (state: Map<string, Expr>) name =
+    if state.ContainsKey name
+    then state.[name]
+    else failwith ("Variable " + name + " is not defined.")
 
 
-//maybe add state as a parameter here
-let rec eval (state: Expr list) (otherParam: Expr) =
+let evalBoardDef(state: Map<string, Expr>) (expr: Expr) =
+    (state.Add ("board", expr), NoRet)
+
+
+let evalWinDef player (state: Map<string, Expr>) expr =
+    match player with
+    | Player(1) -> (state.Add ("p1Wins", expr), NoRet)
+    | Player(2) -> (state.Add ("p2Wins", expr), NoRet)
+    | Player(0) -> (state.Add ("neitherWin", expr), NoRet)
+    | _ -> failwith "Invalid player passed as argument."
+
+let evalMoveDef player (state: Map<string, Expr>) expr =
+    match player with
+    | Player(1) -> (state.Add ("p1Moves", expr), NoRet)
+    | Player(2) -> (state.Add ("p2Moves", expr), NoRet)
+    | _ -> failwith "Invalid player passed as argument."
+
+
+let rec evalProgram state expr exprAcc : Expr list =
+    if List.isEmpty expr then exprAcc
+    else
+        let (newState, ret) = eval state (List.head expr)
+        evalProgram newState (List.tail expr) (exprAcc@[ret])
+
+and eval (state: Map<string, Expr>) (otherParam: Expr) =
     let getValue expr = snd (eval state expr)
     match otherParam with
     | Num n -> state, Num n
     | Bool b -> state, Bool b
     | Player n -> state, Player n
     | SavedApp f -> state, SavedApp f
-    | Variable s -> state, evalVar s
+    | Variable s -> state, evalVar state s
     | Application(ex, el) -> state, evalApp (getValue ex :: List.map getValue el)
     | AndOp al -> state, Bool(evalAnd (List.map getValue al))
     | OrOp ol -> state, Bool(evalOr (List.map getValue ol))
     | IfOp(i, t, e) -> eval state (evalIf (getValue i, getValue t, getValue e))
     | NotOp o -> state, Bool(evalNot (getValue o))
     | LenOp l -> state, Num(evalLen (getValue l))
-    | Program p -> state, Program(List.map getValue p)
+    | Program p -> state, Program(evalProgram state p [])
     | List l -> state, List(List.map getValue l)
     | Operation o -> state, Operation o
     | ValOp(i, b) -> state, evalVal (getNum (getValue i)) (getList (getValue b))
-    | WinDef(p, sf) -> state, WinDef(getValue p, getValue sf)
+    | WinDefOp(p, sf) -> evalWinDef p state (getValue sf)
     | ChangeOp(i, c, b) -> state, List(evalAllChanges (getValue i) (getValue c) (getValue b))
     | AppendOp l -> state, List(evalAppend (List.map (getValue >> getList) l))
+    | BoardDefOp d -> evalBoardDef state (getValue d)
+    | MoveDefOp(p, sf) -> evalMoveDef p state (getValue sf)
+    | NoRet -> state, NoRet
