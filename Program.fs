@@ -19,8 +19,8 @@ let parse input: Expr option =
 
 let printEval ast =
     try
-        printfn "%A" (snd (eval Map.empty ast))
-    with ex -> printfn "Exception! %s " (ex.Message)
+        eval Map.empty ast |> ignore
+    with ex -> printfn "Exception! %s" (ex.Message)
 
 let parseAndEval input =
     let ast_opt =

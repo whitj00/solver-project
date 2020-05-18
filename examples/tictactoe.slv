@@ -21,6 +21,6 @@
 (defMoves Player2 '(changeList 0 2 board))
 (defBoard (list 0 0 0
                 0 0 0
-                0 0 0))
+                0 0 2))
 (solve)
 

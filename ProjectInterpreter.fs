@@ -160,6 +160,9 @@ let rec evalProgram state expr exprAcc : Expr list =
     if List.isEmpty expr then exprAcc
     else
         let (newState, ret) = eval state (List.head expr)
+        match ret with
+        | NoRet -> ()
+        | e -> printfn "%A" e
         evalProgram newState (List.tail expr) (exprAcc@[ret])
 
 let eval (state: Map<string, Expr>) (otherParam: Expr) =
