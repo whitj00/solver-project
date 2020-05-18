@@ -154,8 +154,8 @@ let pVal =
 let pNot = inParens (pright (pstr "not ") expr) |>> (fun a -> NotOp(a)) <!> "pNot"
 
 let pBuiltIn =
-    pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot <|> pLen <|>
-    pWinDef <|> pChanges <|> pAppend <|> pBoardDef <|> pValidMoves <|> pSolve <|> pMoveDef <!> "pBuiltIn"
+    pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot <|> pLen <|> pWinDef <|> pChanges <|> pAppend <|> pBoardDef
+    <|> pValidMoves <|> pSolve <|> pMoveDef <!> "pBuiltIn"
 
 let pOp =
     pstr "+" <|> pstr "/" <|> pstr "-" <|> pstr "*" <|> pstr "=" <|> pstr ">=" <|> pstr "<=" <|> pstr "<" <|> pstr ">"
