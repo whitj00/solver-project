@@ -1,4 +1,5 @@
 ﻿open System
+open System.IO
 open Parser
 open ProjectParser
 open ProjectInterpreter
@@ -43,7 +44,11 @@ let rec repl() =
         parseAndEval input
         repl()
 
+let readFile file = 
+    let file = String.concat " " (File.ReadAllLines(file))
+    parseAndEval file
+    
 [<EntryPoint>]
 let main argv =
-    if not (Array.isEmpty argv) then parseAndEval (argv.[0]) else repl()
+    if not (Array.isEmpty argv) then readFile (argv.[0]) else repl()
     0

@@ -1,8 +1,7 @@
-module ProjectInterpreter
+module rec ProjectInterpreter
 
 open ProjectParser
 
-let state = Map<string, Expr>
 
 (* HELPER FUNCTIONS *)
 let getNum n =
@@ -147,7 +146,7 @@ let evalWinDef player (state: Map<string, Expr>) expr =
     match player with
     | Player(1) -> (state.Add ("p1Wins", expr), NoRet)
     | Player(2) -> (state.Add ("p2Wins", expr), NoRet)
-    | Player(0) -> (state.Add ("neitherWin", expr), NoRet)
+    | Player(0) -> (state.Add ("_neitherWin", expr), NoRet)
     | _ -> failwith "Invalid player passed as argument."
 
 let evalMoveDef player (state: Map<string, Expr>) expr =
@@ -163,7 +162,7 @@ let rec evalProgram state expr exprAcc : Expr list =
         let (newState, ret) = eval state (List.head expr)
         evalProgram newState (List.tail expr) (exprAcc@[ret])
 
-and eval (state: Map<string, Expr>) (otherParam: Expr) =
+let eval (state: Map<string, Expr>) (otherParam: Expr) =
     let getValue expr = snd (eval state expr)
     match otherParam with
     | Num n -> state, Num n
@@ -187,3 +186,106 @@ and eval (state: Map<string, Expr>) (otherParam: Expr) =
     | BoardDefOp d -> evalBoardDef state (getValue d)
     | MoveDefOp(p, sf) -> evalMoveDef p state (getValue sf)
     | NoRet -> state, NoRet
+    | SolveOp -> state, evalSolve (state.Add ("player", Player (1)))
+    | VaildMoveOp -> state, if List.isEmpty (validMoves state) then Bool(false) else Bool(true)
+
+let childGen children =
+    if List.isEmpty children then None else Some children
+
+type MaxTree(board: Expr, children: MinTree list, value: int) =
+    member this.Board = board
+    member this.Children = childGen children
+    member this.Player = Player(1)
+    member this.Value = value
+
+type MinTree(board: Expr, children: MaxTree list, value: int) =
+    member this.Board = board
+    member this.Children = childGen children
+    member this.Player = Player(2)
+    member this.Value = value
+
+let getStateVal s state = snd (eval state (Variable(s)))
+let getBoard = getStateVal "board"
+
+let getplayer state =
+    match getStateVal "player" state with
+    | Player a -> Player a
+    | _ -> failwith "player is not player"
+
+let getp1wins state =
+    match getStateVal "p1Wins" state with
+    | SavedApp a -> a
+    | _ -> failwith "p1wins is not an application"
+
+let getp2wins state =
+    match getStateVal "p2Wins" state with
+    | SavedApp a -> a
+    | _ -> failwith "p2wins is not an application"
+
+let getneitherwins state =
+    match getStateVal "_neitherWin" state with
+    | SavedApp a -> a
+    | _ -> failwith "_neitherWin is not an application"
+
+let getp1moves state =
+    match getStateVal "p1Moves" state with
+    | SavedApp a -> a
+    | _ -> failwith "p1Moves is not an application"
+
+let getp2moves state =
+    match getStateVal "p2Moves" state with
+    | SavedApp a -> a
+    | _ -> failwith "p2Moves is not an application"
+
+let validMoves state =
+    if checkWon state then []
+    else
+        match getplayer state with
+        | Player(1) -> getList (snd (eval state (getp1moves state)))
+        | Player(2) -> getList (snd (eval state (getp2moves state)))
+        | _ -> failwith "not a valid player"
+
+let getBoardValue state =
+    if (snd (eval state (getp1wins state))) = Bool(true) then 1
+    elif (snd (eval state (getp2wins state))) = Bool(true) then -1
+    elif (snd (eval state (getneitherwins state))) = Bool(true) then 0
+    else failwith "Win Conditions Must Be Mutually Exclusive and Total"
+
+let checkWon state = 
+    (snd (eval state (getp1wins state))) = Bool(true) || (snd (eval state (getp2wins state))) = Bool(true)
+
+let minValue (children: MaxTree list option) state: int =
+    match children with
+    | Some l ->
+        List.fold (fun acc (x: MaxTree) ->
+            if x.Value < acc then x.Value else acc) 1 l
+    | None -> getBoardValue state
+
+let maxValue (children: MinTree list option) state: int =
+    match children with
+    | Some l ->
+        List.fold (fun acc (x: MinTree) ->
+            if x.Value > acc then x.Value else acc) -1 l
+    | None -> getBoardValue state
+
+let genMaxTree (state: Map<string, Expr>) =
+    let board = getBoard state
+    let children = List.map (fun c -> genMinTree ((state.Add ("board", c)).Add ("player", (Player (2))))) (validMoves state)
+    MaxTree(board, children, maxValue (childGen children) state)
+
+let genMinTree state =
+    let board = getBoard state
+    let children = List.map (fun c -> genMaxTree ((state.Add ("board", c)).Add ("player", (Player (1))))) (validMoves state)
+    MinTree(board, children, minValue (childGen children) state)
+
+let evalSolve state : Expr =
+    let gameTree = genMaxTree state
+    match gameTree.Children with
+    | Some c ->
+        let solution =
+            (List.fold (fun (acc:MinTree) (x:MinTree) -> if x.Value > acc.Value then x else acc) c.[0] c)
+        printf "Solution: %s\n" (prettyPrint solution.Board)
+        NoRet
+    | None ->
+        printfn "No Possible Moves"
+        NoRet
