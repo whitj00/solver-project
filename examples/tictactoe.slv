@@ -1,0 +1,26 @@
+(defWin Player1 '(or
+                    (= 1 (val 0 board) (val 1 board) (val 2 board))
+                    (= 1 (val 3 board) (val 4 board) (val 5 board))
+                    (= 1 (val 6 board) (val 7 board) (val 8 board))
+                    (= 1 (val 0 board) (val 3 board) (val 6 board))
+                    (= 1 (val 1 board) (val 4 board) (val 7 board))
+                    (= 1 (val 2 board) (val 5 board) (val 8 board))
+                    (= 1 (val 0 board) (val 4 board) (val 8 board))
+                    (= 1 (val 2 board) (val 4 board) (val 6 board))))
+(defWin Player2 '(or
+                    (= 2 (val 0 board) (val 1 board) (val 2 board))
+                    (= 2 (val 3 board) (val 4 board) (val 5 board))
+                    (= 2 (val 6 board) (val 7 board) (val 8 board))
+                    (= 2 (val 0 board) (val 3 board) (val 6 board))
+                    (= 2 (val 1 board) (val 4 board) (val 7 board))
+                    (= 2 (val 2 board) (val 5 board) (val 8 board))
+                    (= 2 (val 0 board) (val 4 board) (val 8 board))
+                    (= 2 (val 2 board) (val 4 board) (val 6 board))))
+(defWin Neither '(not (validMoves?)))
+(defMoves Player1 '(changeList 0 1 board))
+(defMoves Player2 '(changeList 0 2 board))
+(defBoard (list 0 0 0
+                0 0 0
+                0 0 2))
+(solve)
+

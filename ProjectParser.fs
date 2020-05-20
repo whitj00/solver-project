@@ -24,6 +24,8 @@ type Expr =
     | BoardDefOp of Expr
     | MoveDefOp of Expr * Expr
     | NoRet
+    | SolveOp
+    | VaildMoveOp
 
 (* HELPER FUNCTIONS *)
 let makeNum (n: int) = Num n
@@ -85,13 +87,17 @@ let pVariable = pmany1 (pletter <|> pchar '?') |>> (stringify >> makeVar) <!> "p
  * of parameters.
  * @param op a string representing function name.
  *)
-let funCall op = inParens (pright (pstr (op + " ")) (pmany2sep expr pws1)) <!> "funCall"
+let funCall op = inParens (pright (pleft (pstr (op + " ")) pws0) (pmany2sep expr pws1)) <!> "funCall"
 
 let pAnd = funCall "and" |>> AndOp <!> "pAnd"
 
 let pOr = funCall "or" |>> OrOp <!> "pOr"
 
 let pList = inParens (pstr "list") |>> (fun a -> List([])) <|> (funCall "list" |>> List) <!> "pList"
+
+let pSolve = inParens (pstr "solve") |>> fun a -> SolveOp
+
+let pValidMoves = inParens (pstr "validMoves?") |>> fun a -> VaildMoveOp
 
 let pLen =
     funCall "len" |>> (fun r ->
@@ -148,8 +154,8 @@ let pVal =
 let pNot = inParens (pright (pstr "not ") expr) |>> (fun a -> NotOp(a)) <!> "pNot"
 
 let pBuiltIn =
-    pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot <|> pLen <|>
-    pWinDef <|> pChanges <|> pAppend <|> pBoardDef <|> pMoveDef <!> "pBuiltIn"
+    pAnd <|> pIf <|> pVal <|> pOr <|> pList <|> pNot <|> pLen <|> pWinDef <|> pChanges <|> pAppend <|> pBoardDef
+    <|> pValidMoves <|> pSolve <|> pMoveDef <!> "pBuiltIn"
 
 let pOp =
     pstr "+" <|> pstr "/" <|> pstr "-" <|> pstr "*" <|> pstr "=" <|> pstr ">=" <|> pstr "<=" <|> pstr "<" <|> pstr ">"
@@ -208,3 +214,6 @@ let rec prettyPrint ast =
     | WinDefOp _ -> "defWin"
     | BoardDefOp _ -> "defBoard"
     | MoveDefOp _ -> "defMoves"
+    | SolveOp _ -> "solve"
+    | NoRet -> "NoRet"
+    | ValidMoveOp -> "ValidMove"

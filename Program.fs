@@ -1,8 +1,7 @@
-﻿open System
+open System.IO
 open Parser
 open ProjectParser
 open ProjectInterpreter
-
 
 (*From course material*)
 let parse input: Expr option =
@@ -18,17 +17,17 @@ let parse input: Expr option =
 
 let printEval ast =
     try
-        printfn "%A" (snd (eval Map.empty ast))
-    with ex -> printfn "Exception! %s " (ex.Message)
+        eval Map.empty ast |> ignore
+    with ex -> printfn "Exception! %s" (ex.Message)
 
 let parseAndEval input =
-    let ast_opt =
+    let astOpt =
         try
             (parse input)
         with ex ->
             printfn "Exception! %s " (ex.Message)
             None
-    match ast_opt with
+    match astOpt with
     | Some ast -> (printEval ast)
     | None -> ()
 
@@ -43,7 +42,11 @@ let rec repl() =
         parseAndEval input
         repl()
 
+let readFile file =
+    let file = String.concat " " (File.ReadAllLines(file))
+    parseAndEval file
+
 [<EntryPoint>]
 let main argv =
-    if not (Array.isEmpty argv) then parseAndEval (argv.[0]) else repl()
+    if not (Array.isEmpty argv) then readFile (argv.[0]) else repl()
     0
