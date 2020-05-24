@@ -1,3 +1,15 @@
+# 
+For efficiency, we define the board as a 1D list of 9 numbers
+Index 0..2 are the top row, index 3..5 are the middle row, and
+Index 6..8 are the bottom row
+#
+
+(defBoard (list 0 0 0
+                0 0 0
+                0 0 0))
+
+
+# Player One wins if the board contains 3 1s in a row #
 (defWin Player1 '(or
                     (= 1 (val 0 board) (val 1 board) (val 2 board))
                     (= 1 (val 3 board) (val 4 board) (val 5 board))
@@ -7,6 +19,8 @@
                     (= 1 (val 2 board) (val 5 board) (val 8 board))
                     (= 1 (val 0 board) (val 4 board) (val 8 board))
                     (= 1 (val 2 board) (val 4 board) (val 6 board))))
+
+# Player Two wins if the board contains 3 2s in a row #
 (defWin Player2 '(or
                     (= 2 (val 0 board) (val 1 board) (val 2 board))
                     (= 2 (val 3 board) (val 4 board) (val 5 board))
@@ -16,11 +30,16 @@
                     (= 2 (val 2 board) (val 5 board) (val 8 board))
                     (= 2 (val 0 board) (val 4 board) (val 8 board))
                     (= 2 (val 2 board) (val 4 board) (val 6 board))))
+
+# Neither player wins if there are no valid moves left #
 (defWin Neither '(not (validMoves?)))
+
+# Player 1s potential moves are changing any 0 on the board to a 1 #
 (defMoves Player1 '(changeList 0 1 board))
+
+# Player 2s potential moves are changing any 0 on the board to a 2 #
 (defMoves Player2 '(changeList 0 2 board))
-(defBoard (list 0 0 0
-                0 0 0
-                0 0 2))
+
+# Solve will return the best possible move for player one, assuming Player 2 uses an optimal strategy #
 (solve)
 

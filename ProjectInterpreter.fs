@@ -197,7 +197,7 @@ type MaxTree(board: Expr, children: MinTree list, value: int) =
     member this.Board = board
     member this.Children = childGen children
     member this.Player = Player(1)
-    member this.Value = value
+    member this.Value : int = value
 
 type MinTree(board: Expr, children: MaxTree list, value: int) =
     member this.Board = board
@@ -275,14 +275,29 @@ let maxValue (children: MinTree list option) state: int =
 
 let genMaxTree (state: Map<string, Expr>) =
     let board = getBoard state
-    let children =
-        List.map (fun c -> genMinTree ((state.Add("board", c)).Add("_player", (Player(2))))) (validMoves state)
+    let rec createChildrenMax l acc maxVal = 
+        match l with
+        | [] -> acc
+        | [h] -> (genMinTree ((state.Add("board", h)).Add("_player", (Player(2)))))::acc
+        | h::t ->
+            let child : MinTree = (genMinTree ((state.Add("board", h)).Add("_player", (Player(2)))))
+            if child.Value = 1 then [child]
+            else if child.Value >= maxVal then (createChildrenMax t acc maxVal)
+            else child::(createChildrenMax t acc child.Value)
+    let children = createChildrenMax (validMoves state) [] 2
     MaxTree(board, children, maxValue (childGen children) state)
 
 let genMinTree state =
     let board = getBoard state
-    let children =
-        List.map (fun c -> genMaxTree ((state.Add("board", c)).Add("_player", (Player(1))))) (validMoves state)
+    let rec createChildrenMin l acc minVal = 
+        match l with
+        | [] -> acc
+        | h::t ->
+            let child : MaxTree = (genMaxTree (state.Add("board", h).Add("_player", (Player(1)))))
+            if child.Value = -1 then [child]
+            else if child.Value <= minVal then (createChildrenMin t acc minVal)
+            else child::(createChildrenMin t acc child.Value)
+    let children = createChildrenMin (validMoves state) [] -2
     MinTree(board, children, minValue (childGen children) state)
 
 let evalSolve state: Expr =
@@ -292,8 +307,11 @@ let evalSolve state: Expr =
         let solution =
             (List.fold (fun (acc: MinTree) (x: MinTree) ->
                 if x.Value > acc.Value then x else acc) c.[0] c)
-        printf "Solution: %s\n" (prettyPrint solution.Board)
-        NoRet
+        match gameTree.Value with
+        | 1 -> printfn "You can force a win. Solution: %s\n" (prettyPrint solution.Board)
+        | 0 -> printfn "You can force a draw. Solution:\n%s\n" (prettyPrint solution.Board)
+        | -1 -> printfn "Your opponent can force a win. No suggested move."
+        | _ -> failwith "Invalid Value"
     | None ->
         printfn "No Possible Moves"
-        NoRet
+    NoRet

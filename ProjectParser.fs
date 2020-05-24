@@ -53,7 +53,7 @@ let inParens p = pbetween (pchar '(') (pright pws0 (pchar ')')) p <!> "inParens"
 
 (* Comment Parsing*)
 let is_not_pound(c:char) = is_regexp (c.ToString()) @"[^#]"
-let pComment = pbetween (pchar '#') (pchar '#') (pmany0 (psat is_not_pound)) |>> (fun c -> NoRet) <!> "inParens"
+let pComment = pbetween ((pstr "###") <|> (pstr "#")) ((pstr "###") <|> (pstr "#")) (pmany0 (psat is_not_pound)) |>> (fun c -> NoRet) <!> "inParens"
 
 (* Grammar *)
 

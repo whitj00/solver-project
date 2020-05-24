@@ -1,0 +1,98 @@
+## ## ## ## ## ## ## ## ## ## ## ## ## ##
+# This file demonstrates core language  #
+# functionality unrelated to the solver #
+## ## ## ## ## ## ## ## ## ## ## ## ## ##
+
+### Types ###
+
+# Num #
+4
+-3
+
+# Bool #
+True
+False
+true
+false
+
+# Lists (covered below) #
+
+# Player #
+Player1
+Player2
+Neither
+
+# Check equality with = #
+(= 1 1)
+(= false true)
+(= 5 true)
+(= 2 2 5)
+
+### Booleans ###
+
+# Boolean operations are available for AND, OR, and NOT #
+(and true true)
+(and true false)
+(or true false)
+(or false false)
+(not true)
+(not false)
+
+# AND and OR will work for any arbitrary number of arguments #
+(and true true false)
+(or false false true)
+
+# Positive Nums are truthy #
+(and 1 1 true)
+(or false 5)
+(not 4)
+
+### Math ###
+
+# Integer arithmetic functions are provided for addition, multiplication, subtraction, and division #
+(+ 1 2)
+(- 2 1)
+(* 2 4)
+(/ 4 2)
+
+# Division will always result in an integer #
+(/ 4 3)
+
+# Integer arithmetic will work for any arbitrary number of arguments #
+(+ 2 3 4)
+(- 5 2 1)
+(* 2 4 2)
+(/ 16 2 4)
+
+# Integer comparison operations are also available #
+(> 2 1)
+(< 1 2)
+(>= 2 2)
+(<= 2 2)
+
+### Lists ###
+
+# Create a List #
+(list 1 2 3 4)
+
+# Lists can be heterogenous #
+(list 1 true)
+
+# Or n-dimensional #
+(list (list 1 2) (list 3 4))
+
+# Access their values with `val` #
+(val 1 (list 0 1 2))
+
+# We can do the same for n-dimensional lists #
+(val 1 (val 0 (list (list 0 1 2) 4)))
+
+# Lists can be empty #
+(list)
+
+# We can append them with `append` #
+(append (list 1 2 3) (list 4 5 6))
+
+# Equality also works on lists #
+(= (list 1 2) (list 1 2))
+(= (list 1 2) (list 1))
