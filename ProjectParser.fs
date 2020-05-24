@@ -50,6 +50,11 @@ let pmany2sep p sep = pseq p (pmany0 (pright sep p)) (fun (x, xs) -> x :: xs) <!
  *)
 let inParens p = pbetween (pchar '(') (pright pws0 (pchar ')')) p <!> "inParens"
 
+
+(* Comment Parsing*)
+let is_not_pound(c:char) = is_regexp (c.ToString()) @"[^#]"
+let pComment = pbetween (pchar '#') (pchar '#') (pmany0 (psat is_not_pound)) |>> (fun c -> NoRet) <!> "inParens"
+
 (* Grammar *)
 
 let expr, exprImpl = recparser()
@@ -171,7 +176,7 @@ let pSavedApp = pseq (pchar '\'') (pBuiltIn <|> pApplication) (fun (c, d) -> Sav
 exprImpl := pBuiltIn <|> pApplication <|> pSavedApp <|> pNumber <|> pPlayer <|> pBool <|> pVariable <!> "expr"
 
 let manyExpr =
-    pleft (pseq expr (pmany0 (pright pws1 expr)) (fun (x, xs) -> Program(x :: xs))) pws0 <!> "manyExpr"
+    pleft (pseq (pComment <|> expr) (pmany0 (pright pws1 (pComment <|> expr))) (fun (x, xs) -> Program(x :: xs))) pws0 <!> "manyExpr"
 
 let grammar = pright pws0 (pleft manyExpr peof) <!> "grammar"
 

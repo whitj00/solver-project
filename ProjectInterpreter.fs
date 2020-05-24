@@ -185,7 +185,7 @@ let eval (state: Map<string, Expr>) (otherParam: Expr) =
     | BoardDefOp d -> evalBoardDef state (getValue d)
     | MoveDefOp(p, sf) -> evalMoveDef p state (getValue sf)
     | NoRet -> state, NoRet
-    | SolveOp -> state, evalSolve (state.Add("player", Player(1)))
+    | SolveOp -> state, evalSolve (state.Add("_player", Player(1)))
     | ValidMoveOp ->
         state,
         (if List.isEmpty (validMoves state) then Bool(false) else Bool(true))
@@ -209,9 +209,9 @@ let getStateVal s state = snd (eval state (Variable(s)))
 let getBoard = getStateVal "board"
 
 let getplayer state =
-    match getStateVal "player" state with
+    match getStateVal "_player" state with
     | Player a -> Player a
-    | _ -> failwith "player is not player"
+    | _ -> failwith "_player is not player"
 
 let getp1wins state =
     match getStateVal "p1Wins" state with
@@ -276,13 +276,13 @@ let maxValue (children: MinTree list option) state: int =
 let genMaxTree (state: Map<string, Expr>) =
     let board = getBoard state
     let children =
-        List.map (fun c -> genMinTree ((state.Add("board", c)).Add("player", (Player(2))))) (validMoves state)
+        List.map (fun c -> genMinTree ((state.Add("board", c)).Add("_player", (Player(2))))) (validMoves state)
     MaxTree(board, children, maxValue (childGen children) state)
 
 let genMinTree state =
     let board = getBoard state
     let children =
-        List.map (fun c -> genMaxTree ((state.Add("board", c)).Add("player", (Player(1))))) (validMoves state)
+        List.map (fun c -> genMaxTree ((state.Add("board", c)).Add("_player", (Player(1))))) (validMoves state)
     MinTree(board, children, minValue (childGen children) state)
 
 let evalSolve state: Expr =

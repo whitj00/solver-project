@@ -3,18 +3,6 @@ open Parser
 open ProjectParser
 open ProjectInterpreter
 
-(*From course material*)
-let parse input: Expr option =
-    let input' = prepare input
-    match grammar input' with
-    | Success(res, _) -> Some res
-    | Failure(pos, rule) ->
-        printfn "Invalid expression."
-        let msg = sprintf "Cannot parse input at pos %d in rule '%s':" pos rule
-        let diag = diagnosticMessage 20 pos input msg
-        printf "%s" diag
-        None
-
 let printEval ast =
     try
         eval Map.empty ast |> ignore
