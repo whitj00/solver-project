@@ -52,8 +52,10 @@ let inParens p = pbetween (pchar '(') (pright pws0 (pchar ')')) p <!> "inParens"
 
 
 (* Comment Parsing*)
-let is_not_pound(c:char) = is_regexp (c.ToString()) @"[^#]"
-let pComment = pbetween ((pstr "###") <|> (pstr "#")) ((pstr "###") <|> (pstr "#")) (pmany0 (psat is_not_pound)) |>> (fun c -> NoRet) <!> "inParens"
+let is_not_pound (c: char) = is_regexp (c.ToString()) @"[^#]"
+let pComment =
+    pbetween ((pstr "###") <|> (pstr "#")) ((pstr "###") <|> (pstr "#")) (pmany0 (psat is_not_pound))
+    |>> (fun c -> NoRet) <!> "inParens"
 
 (* Grammar *)
 
@@ -176,7 +178,8 @@ let pSavedApp = pseq (pchar '\'') (pBuiltIn <|> pApplication) (fun (c, d) -> Sav
 exprImpl := pBuiltIn <|> pApplication <|> pSavedApp <|> pNumber <|> pPlayer <|> pBool <|> pVariable <!> "expr"
 
 let manyExpr =
-    pleft (pseq (pComment <|> expr) (pmany0 (pright pws1 (pComment <|> expr))) (fun (x, xs) -> Program(x :: xs))) pws0 <!> "manyExpr"
+    pleft (pseq (pComment <|> expr) (pmany0 (pright pws1 (pComment <|> expr))) (fun (x, xs) -> Program(x :: xs))) pws0
+    <!> "manyExpr"
 
 let grammar = pright pws0 (pleft manyExpr peof) <!> "grammar"
 
