@@ -279,16 +279,15 @@ let genMaxTree (state: Map<string, Expr>) =
     let rec createChildrenMax l acc maxVal =
         match l with
         | [] -> acc
-        | [ h ] -> (genMinTree ((state.Add("board", h)).Add("_player", (Player(2))))) :: acc
         | h :: t ->
             let child: MinTree = (genMinTree ((state.Add("board", h)).Add("_player", (Player(2)))))
             if child.Value = 1
             then [ child ]
-            else if child.Value >= maxVal
+            else if child.Value <= maxVal
             then (createChildrenMax t acc maxVal)
             else child :: (createChildrenMax t acc child.Value)
 
-    let children = createChildrenMax (validMoves state) [] 2
+    let children = createChildrenMax (validMoves state) [] -2
     MaxTree(board, children, maxValue (childGen children) state)
 
 let genMinTree state =
@@ -301,11 +300,11 @@ let genMinTree state =
             let child: MaxTree = (genMaxTree (state.Add("board", h).Add("_player", (Player(1)))))
             if child.Value = -1
             then [ child ]
-            else if child.Value <= minVal
+            else if child.Value >= minVal
             then (createChildrenMin t acc minVal)
             else child :: (createChildrenMin t acc child.Value)
 
-    let children = createChildrenMin (validMoves state) [] -2
+    let children = createChildrenMin (validMoves state) [] 2
     MinTree(board, children, minValue (childGen children) state)
 
 let evalSolve state: Expr =
