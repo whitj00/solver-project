@@ -186,7 +186,7 @@ let eval (state: Map<string, Expr>) (otherParam: Expr) =
     | MoveDefOp(p, sf) -> evalMoveDef p state (getValue sf)
     | NoRet -> state, NoRet
     | SolveOp -> state, evalSolve (state.Add("player", Player(1)))
-    | VaildMoveOp ->
+    | ValidMoveOp ->
         state,
         (if List.isEmpty (validMoves state) then Bool(false) else Bool(true))
 

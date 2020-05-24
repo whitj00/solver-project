@@ -25,7 +25,7 @@ type Expr =
     | MoveDefOp of Expr * Expr
     | NoRet
     | SolveOp
-    | VaildMoveOp
+    | ValidMoveOp
 
 (* HELPER FUNCTIONS *)
 let makeNum (n: int) = Num n
@@ -97,7 +97,7 @@ let pList = inParens (pstr "list") |>> (fun a -> List([])) <|> (funCall "list" |
 
 let pSolve = inParens (pstr "solve") |>> fun a -> SolveOp
 
-let pValidMoves = inParens (pstr "validMoves?") |>> fun a -> VaildMoveOp
+let pValidMoves = inParens (pstr "validMoves?") |>> fun a -> ValidMoveOp
 
 let pLen =
     funCall "len" |>> (fun r ->
