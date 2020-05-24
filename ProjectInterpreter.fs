@@ -102,9 +102,6 @@ let evalMath op nums =
 (* Application Evaluators*)
 let evalApp a: Expr =
     match List.head a with
-    | Variable v ->
-        printf "Pretending to run %s\n" v
-        Application(a.Head, a.Tail)
     | Operation o -> evalMath o (List.tail a)
     | _ -> failwith "Invalid Function Name"
 
