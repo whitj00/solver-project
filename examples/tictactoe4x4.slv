@@ -1,15 +1,15 @@
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-#  This is an implementation of a 4x4 TicTacToe Game        ##
-#  Solving from an empty board will take a *very* long time ##
-#  However, it works and gets much faster very quickly as   ##
-#  the game progresses.                                     ##
+#  This is an implementation of a 4x4 TicTacToe Game         #
+#  Solving from an empty board will take a *very* long time  #
+#  However, it works and gets much faster very quickly as    #
+#  the game progresses.                                      #
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
 (defBoard (list
                 0 0 0 0
                 0 0 0 0
                 0 0 0 0
-                0 0 0 0
+                0 0 0 2
            ))
 
 
