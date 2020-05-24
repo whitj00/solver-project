@@ -158,7 +158,7 @@ let rec evalProgram state expr exprAcc: Expr list =
         let (newState, ret) = eval state (List.head expr)
         match ret with
         | NoRet -> ()
-        | e -> printfn "%A" e
+        | e -> printfn "%s" (prettyPrint e)
         evalProgram newState (List.tail expr) (exprAcc @ [ ret ])
 
 let eval (state: Map<string, Expr>) (otherParam: Expr) =

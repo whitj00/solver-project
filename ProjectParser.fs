@@ -205,11 +205,16 @@ let rec prettyPrint ast =
     | Player 1 -> "Player1"
     | Player 2 -> "Player2"
     | Player _ -> "Neither"
-    | List l -> "(" + String.concat ", " (List.map prettyPrint l) + ")"
-    | SavedApp f -> "{Saved Application: " + prettyPrint f + " }"
+    | List l ->
+        let argList = List.map prettyPrint l
+        "[" + (String.concat "; " argList) + "]"
+    | SavedApp f -> "'" + prettyPrint f
     | Application(ex, el) ->
-        "{Apply " + prettyPrint ex + " to (" + String.concat " " (List.map prettyPrint el) + ")}"
-    | AndOp al -> "{AndOp: " + String.concat " & " (List.map prettyPrint al) + "}"
+        let argList = List.map prettyPrint (ex::el)
+        "(" + (String.concat " " argList) + ")"
+    | AndOp al -> 
+        let argList = "and"::(List.map prettyPrint al)
+        "(" + (String.concat " " argList) + ")"
     | OrOp ol -> "{OrOp: " + String.concat " || " (List.map prettyPrint ol) + "}"
     | NotOp o -> "{Not: " + prettyPrint o + "}"
     | Program p ->
