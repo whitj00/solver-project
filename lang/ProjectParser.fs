@@ -195,8 +195,9 @@ let parse input: Expr option =
         printf "%s" diag
         None
 
-// TODO: Rewrite
 let rec prettyPrint ast =
+    let prettyHelper argList =
+        "(" + (String.concat " " argList) + ")"
     match ast with
     | Num n -> string n
     | Bool b -> string b
@@ -211,22 +212,35 @@ let rec prettyPrint ast =
     | SavedApp f -> "'" + prettyPrint f
     | Application(ex, el) ->
         let argList = List.map prettyPrint (ex::el)
-        "(" + (String.concat " " argList) + ")"
+        prettyHelper argList
     | AndOp al -> 
         let argList = "and"::(List.map prettyPrint al)
-        "(" + (String.concat " " argList) + ")"
-    | OrOp ol -> "{OrOp: " + String.concat " || " (List.map prettyPrint ol) + "}"
-    | NotOp o -> "{Not: " + prettyPrint o + "}"
+        prettyHelper argList
+    | OrOp ol ->
+        let argList = "or"::(List.map prettyPrint ol)
+        prettyHelper argList
+    | NotOp o ->
+        let argList = "not"::[prettyPrint o]
+        prettyHelper argList
     | Program p ->
         String.concat "\n\n" (List.map prettyPrint p)
-    | AppendOp _ -> "Append"
+    | AppendOp l ->
+        let argList = "append"::(List.map prettyPrint l)
+        prettyHelper argList
     | ChangeOp _ -> "Change"
-    | IfOp _ -> "If"
-    | LenOp _ -> "Len"
-    | ValOp _ -> "Val"
+    | IfOp (i, t, e) ->
+        let argList = "if"::[prettyPrint i; prettyPrint t; prettyPrint e]
+        prettyHelper argList
+    | LenOp b ->
+        let argList = "len"::[prettyPrint b]
+        prettyHelper argList
+    | ValOp (i, b) ->
+        let argList = "val"::[prettyPrint i; prettyPrint b]
+        prettyHelper argList
     | WinDefOp _ -> "defWin"
     | BoardDefOp _ -> "defBoard"
     | MoveDefOp _ -> "defMoves"
-    | SolveOp _ -> "solve"
-    | NoRet -> "NoRet"
-    | ValidMoveOp -> "ValidMove"
+    | SolveOp _ -> "(solve)"
+    | NoRet -> ""
+    | ValidMoveOp -> "(validMoves?)"
+
