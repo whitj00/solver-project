@@ -1,0 +1,145 @@
+\documentclass{article}
+\usepackage{longtable}
+\title{SLVR: A Domain Specific Language for Solving Adversarial Games}
+\author{Noah Andrew and Whit Jackson}
+\date{\today} 
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+SLVR is a declarative language for solving adversarial two player games. A "solver" is capable of modeling a game tree and deducing optimal gameplay assuming an opponent who is also playing with an optimal strategy. By modeling a game in which both players play "perfectly," we can also present players with real-time information about their position in their game. For example, our implementation of the language is able to inform players if they are guaranteed to win, draw, or lose a given game (assuming no mistakes are made by either player).
+
+A domain specific language is well suited for this problem. We can define simple language constructs which permits users to   model gameplay mechanics, while making knowledge of game strategy unnecessary. Built-in types and constructs give first-class support to represent concepts like win-conditions, players, and moves. This makes writing a solver for a given game very easy. For example, we have included an example TiCTacToe solver written in less than 20 lines of code.
+
+
+\section{Design Principles}
+
+SLVR aims to be elegant and easy to learn. SLVR is implemented as a Lisp in order to minimize syntactical overhead and to make the language flexible and composable enough to model many types of games.
+
+Built-in language features such as types and functions are intentionally limited to elements necessary to our problem area. For instance, there are no built in string or character types and no print function is provided.
+
+The language aims to follow a declarative and functional paradigm. Only three user-facing functions are able to modify state. Users cannot access the value of any state variables. This makes it easy to guarantee the absence of unintended side-effects. Executing the same program will always produce the same output. This additionally allows for efficient game-tree modeling without imposing substantial barriers to writing a program.
+
+\section{Examples}
+
+Examples with documentation are provided in the \verb|examples/| folder:
+
+\begin{enumerate}
+\item \verb|languageFeatures.slv|: A demonstration of many built in features of the language, including math, lists, boolean operations, and types.
+\item \verb|tictactoe.slv|: An implementation of a 3x3 game of TicTacToe.
+\item \verb|tictactoe4x4.slv|: An implementation of a 4x4 game of TicTacToe. 
+\end{enumerate}
+
+\section{Language Concepts}
+
+Programs in SLVR are a file which contain one or more expressions. Expressions are evaluated first-to-last in the order they are in the program. Initially, state is empty. Each expression changes one state value (modifying one value or adding one value) or leaves state unchanged. Once a state variable is defined, it will always have a value for the remainder of program execution. 
+
+Expressions are either an application or a value.
+
+Applications follow the form \verb|(function param1 param2 ... paramN)|. Parameters can be either applications or values. Individual parameters are always evaluated prior to evaluating the application. The only exception to this is Saved Applications, which do not evaluate their parameters.
+
+Values can be:
+\begin{itemize}
+\item Nums: an integer. Nums are declared with their literal values
+\item Bools: a boolean. Valid values are \verb|True| or \verb|False| (case insensitive)
+\item Players: represent a player. Valid values are \verb|Player1|, \verb|Player2|, and \verb|Neither| (case insensitive)
+\item Lists: a heterogenous list of any built-in type, including lists themselves. Lists are declared with the application \verb|list| (eg. \verb|(list 1 2 3)|)
+\item Saved Applications: Applications which are not evaluated. These are used to define win conditions and valid moves. Saved applications follow the form of an application preceded by a \verb|'|
+\item Variables: \verb|board| is the only variable programmers can use in a program. Its value is not available to the programmer and thus can only be used in a saved expression.
+\end{itemize}
+
+The solver uses a MiniMax algorithm. In order to solve a game, the programmer must define a board, a function which generates a list of possible moves for each user, and win conditions for both players and a draw.
+
+Boards are defined with \verb|boardDef| and are best represented as, though not required to be, lists. The solver will find the best possible move for Player1 for this board.
+
+Possible moves are defined with \verb|moveDef|. The function provided to moveDef may use the variable \verb|board|. When executed, the expression should return a list of possible boards after the next move, given the current value of \verb|board|.
+
+Win conditions are defined with \verb|winDef|. The function provided to winDef may use the variable \verb|board|. When executed, the expression should return either True or False, representing whether a player has won given a specific value for \verb|board|. Players must also define a win condition for a draw in which neither player wins.
+
+After defining these game values, \verb|(solve)| prints out the board after Player1's best (or tied for best) available move. The solver will always assume that it is Player1's turn and will always find the best move for Player1.
+
+
+\section{Syntax}
+
+
+
+\section{Semantics}
+
+Notes:
+\begin{itemize}
+\item  All state is global and mutable.
+\item Comments have no side-effects
+\item All arithmetic is integer arithmetic
+\item True and any positive Num is truthy
+\end{itemize}
+
+\begin{longtable}{|p{0.22\textwidth}|p{0.18\textwidth}|p{0.20\textwidth}|p{0.40\textwidth}|}
+\hline
+\textbf{Syntax} & \textbf{Abstract Syntax} & \textbf{Type} & \textbf{Meaning} \\
+\hline\hline
+\textit{n} & Num of int & int  & \textit{n} is a primitive type. We represent Numbers using 32-bit FSharp integer data type \\
+\hline
++, -, *, /, =, >, <, >=, <= & Operation of string & Operation  & An operation represents a built-in mathematical function. Its internal representation is a string representing the operation. \\
+\hline
+(and $e_{1}$ $e_{2}$ ... $e_{n}$) & AndOp of Expr list & Expr list $\rightarrow$ Bool  & AndOp returns true if all of its elements are truthy. AndOp returns false otherwise \\
+\hline
+(or $e_{1}$ $e_{2}$ ... $e_{n}$) & OrOp of Expr list & Expr list $\rightarrow$ Bool  & OrOp returns true if any of its elements are truthy. OrOp returns false otherwise \\
+\hline
+(if $e_{1}$ $e_{2}$ ... $e_{n}$) & IfOp of Expr * Expr * Expr & Expr $\rightarrow$ Expr $\rightarrow$ Expr $\rightarrow$ Expr & IfOp returns $e_{2}$ if $e_{1}$ is truthy and returns $e_{3}$ otherwise \\
+\hline
+(not $e$) & NotOp of Expr & Expr $\rightarrow$ Bool & NotOp returns false if $e$ is truthy and false otherwise \\
+\hline
+(val $i$ $l$) & ValOp of Expr * Expr & Num $\rightarrow$ List $\rightarrow$ Expr & ValOp returns the value at index $i$ of $l$ \\
+\hline
+(len $l$) & LenOp of Expr & List $\rightarrow$ Num & LenOp returns the length of list $l$ \\
+\hline
+$v$ & Variable of string & Variable $\rightarrow$ Expr &  returns the value of the variable $v$ or throws an error if that value is undefined \\
+\hline
+$b$ & Bool of bool & Bool & This is a primitive type. We represent Bools as booleans in FSharp. \\
+\hline
+($f$ $e_{1}$ $e_{2}$ ... $e_{n}$) & Application of Expr * Expr list & Expr $\rightarrow$ Expr list $\rightarrow$ Expr & Applies $e_{1}$ ... $e_{n}$ to $f$ \\
+\hline
+$'$($f$ $e_{1}$ $e_{2}$ ... $e_{n}$) & SavedApp of Expr & Expr  $\rightarrow$ SavedApp & Unlike normal applications, Saved Applications do not evaluate the any expressions between the parentheses or apply the parameters to $f$. This allows you to store a procedure for later use. \\
+\hline
+$p$ & Player of int & Player & This is a primitive type. We represent players as 1, 2, or 0. A player with the value 1 or 2 represents Player One and Player Two, respectively. 0 represents neither player. \\
+\hline
+$e_{1}$ $e_{2}$ ... $e_{n}$ & Program of Expr list & Program $\rightarrow$ Expr list & This is the structure of a program. Evaluating a program evaluates each expression $e_{i}$ using the state returned by expression $e_{i-1}$. A program starts with empty state. \\
+\hline
+(list $v_{1}$ $v_{2}$ ... $v_{n}$) & Program of Expr list & Expr list & Defines a list [$v_{1}$; $v_{2}$; ...; $v_{n}$;] \\
+\hline
+(defWin $p$ $a$) & WinDefOp of Expr * Expr & Player $\rightarrow$ SavedApp $\rightarrow$ NoRet & Sets the win condition for Player $p$ to $a$ \\
+\hline
+(changeList $v_{1}$ $v_{2}$ $l$) & ChangeOp of Expr * Expr * Expr & Expr $\rightarrow$ Expr $\rightarrow$ List $\rightarrow$ List List & Returns a list of all possible lists where a single value in $l$ equal to $v_{1}$ is changed to $v_{2}$ \\
+\hline
+(append $l_{1}$ $l_{2}$ ... $l_{n}$) & AppendOp of Expr list & Expr list $\rightarrow$ List & Returns a list containing the elements of $l_{1}$ ... $l_{n}$ in order.\\
+\hline
+(defBoard $l$) & BoardDefOp of Expr &  Expr $\rightarrow$ NoRet & Sets the board in game state to $l$ \\
+\hline
+(defMoves $p$ $a$) & MoveDefOp of Expr * Expr & Player $\rightarrow$ SavedApp $\rightarrow$ NoRet & Sets the function to determine valid moves for Player $p$ to $a$ \\
+\hline
+n/a & NoRet & NoRet & This is a primitive type which represents the lack of a value. Functions which do not return a value return NoRet. \\
+\hline
+(solve) & SolveOp & Board & $solve$ returns the list which represents the board state were Player 1 to make an optimal move in the next turn. \\
+\hline
+(validMoves?) & ValidMoveOp & Bool & Returns true if the current player has valid moves available to them and false otherwise. This expression can only be successfully evaluated by the solver algorithm. \\
+\hline
+
+
+\end{longtable}
+
+\section{Future Work}
+While we are satisfied with our language in its current state, we have strong interest in continuing work on this language independently. 
+
+Among features we have interest in exploring and implementing in the future are:
+\begin{itemize}
+\item Saved functions which are capable of taking user defined parameters. This can minimize verbose definitions of win conditions without compromising program simplicity.
+\item Develop a larger standard set of list manipulation functions. While \verb|changeList| is all that is needed for TicTacToe, it would be difficult to implement most other games with the current set of functions. This will require surveying games compatible with our approach and finding a set functions which can help model many different games. Parameters saved applications can also assist with this.
+\item List literals
+\item Mini-Max performance optimizations, including alpha-beta pruning. We found many tweaks to the algorithm which  significantly reduced solving time in development, and we are confident there are many more.
+\end{itemize}
+
+\end{document}
+
