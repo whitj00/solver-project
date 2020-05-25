@@ -23,76 +23,76 @@ Player2
 Neither
 
 # Check equality with = #
-(= 1 1)
-(= false true)
-(= 5 true)
-(= 2 2 5)
+(= 1 1) #true#
+(= false true) #false#
+(= 5 true) #true#
+(= 2 2 5) #false#
 
 ### Booleans ###
 
 # Boolean operations are available for AND, OR, and NOT #
-(and true true)
-(and true false)
-(or true false)
-(or false false)
-(not true)
-(not false)
+(and true true) #true#
+(and true false) #false#
+(or true false) #true#
+(or false false) #false#
+(not true) #false#
+(not false) #true#
 
 # AND and OR will work for any arbitrary number of arguments #
-(and true true false)
-(or false false true)
+(and true true false) #false#
+(or false false true) #true#
 
 # Positive Nums are truthy #
-(and 1 1 true)
-(or false 5)
-(not 4)
+(and 1 1 true) #true#
+(or false 5) #false#
+(not 4) #false#
 
 ### Math ###
 
 # Integer arithmetic functions are provided for addition, multiplication, subtraction, and division #
-(+ 1 2)
-(- 2 1)
-(* 2 4)
-(/ 4 2)
+(+ 1 2) #3#
+(- 2 1) #1#
+(* 2 4) #8#
+(/ 4 2) #2#
 
 # Division will always result in an integer #
-(/ 4 3)
+(/ 4 3) #1#
 
 # Integer arithmetic will work for any arbitrary number of arguments #
-(+ 2 3 4)
-(- 5 2 1)
-(* 2 4 2)
-(/ 16 2 4)
+(+ 2 3 4) #9#
+(- 5 2 1) #2#
+(* 2 4 2) #16#
+(/ 16 2 4) #2#
 
 # Integer comparison operations are also available #
-(> 2 1)
-(< 1 2)
-(>= 2 2)
-(<= 2 2)
+(> 2 1) #true#
+(< 1 2) #true#
+(>= 2 2) #true#
+(<= 2 2) #true#
 
 ### Lists ###
 
 # Create a List #
-(list 1 2 3 4)
+(list 1 2 3 4) #[1; 2; 3; 4]#
 
 # Lists can be heterogenous #
-(list 1 true)
+(list 1 true) #[1; True]#
 
 # Or n-dimensional #
-(list (list 1 2) (list 3 4))
+(list (list 1 2) (list 3 4)) #[[1; 2]; [3; 4]]#
 
 # Access their values with `val` #
-(val 1 (list 0 1 2))
+(val 1 (list 0 1 2)) #1#
 
 # We can do the same for n-dimensional lists #
-(val 1 (val 0 (list (list 0 1 2) 4)))
+(val 1 (val 0 (list (list 0 1 2) 4))) #1#
 
 # Lists can be empty #
-(list)
+(list) #[]#
 
 # We can append them with `append` #
-(append (list 1 2 3) (list 4 5 6))
+(append (list 1 2 3) (list 4 5 6)) #[1; 2; 3; 4; 5; 6]#
 
 # Equality also works on lists #
-(= (list 1 2) (list 1 2))
-(= (list 1 2) (list 1))
+(= (list 1 2) (list 1 2)) #true#
+(= (list 1 2) (list 1)) #false#

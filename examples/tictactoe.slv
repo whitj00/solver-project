@@ -4,8 +4,9 @@ Index 0..2 are the top row, index 3..5 are the middle row, and
 Index 6..8 are the bottom row
 #
 
-(defBoard (list 0 0 0
-                0 0 0
+# Define the board with an initial state #
+(defBoard (list 1 0 0
+                0 0 2
                 0 0 0))
 
 
