@@ -1,10 +1,14 @@
+###
+TIC TAC TOE SOLVER
+###
+
 # 
+Define an initial board state
 For efficiency, we define the board as a 1D list of 9 numbers
 Index 0..2 are the top row, index 3..5 are the middle row, and
 Index 6..8 are the bottom row
 #
 
-# Define the board with an initial state #
 (defBoard (list 1 0 0
                 0 0 2
                 0 0 0))
@@ -44,3 +48,5 @@ Index 6..8 are the bottom row
 # Solve will return the best possible move for player one, assuming Player 2 uses an optimal strategy #
 (solve)
 
+
+# This program will print "You can force a win. Solution: [1; 0; 0; 0; 0; 2; 1; 0; 0]"#
