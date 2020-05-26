@@ -106,13 +106,11 @@ After defining these game values, \verb|(solve)| prints out the board after Play
     
     <Player>        ::= Player1
                     |   Player2
-                    |   player1
-                    |   player2
+                    |   Neither
                     
-    <Variable>      ::= <Character><Variable>
-                    |   <Character>
+    <Variable>      ::= board
                     
-    <Character>     ::= a | b | ... | z
+    <Letter>        ::= a | b | ... | z
 
     <App>           ::= (<Operator>)
                     |   (<Operator>_<Parameters>)
