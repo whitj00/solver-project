@@ -10,9 +10,9 @@
 
 \section{Introduction}
 
-SLVR is a declarative language for solving adversarial two player games. A "solver" is capable of modeling a game tree and deducing optimal gameplay assuming an opponent who is also playing with an optimal strategy. By modeling a game in which both players play "perfectly," we can also present players with real-time information about their position in their game. For example, our implementation of the language is able to inform players if they are guaranteed to win, draw, or lose a given game (assuming no mistakes are made by either player).
+SLVR is a declarative language for solving adversarial two player games. A ``solver" is capable of modeling a game tree and deducing optimal gameplay by assuming an opponent will also play with an optimal strategy. More specifically, solver computes the Nash equilibrium, a strategy from which neither player is able to gain by deviating. By modeling a game in which both players play ``perfectly," we can also present players with real-time information about their position in their game. For example, our implementation of the language is able to inform players if they are guaranteed to win, draw, or lose a given game (assuming no mistakes are made by either player).
 
-A domain specific language is well suited for this problem. We can define simple language constructs which permits users to   model gameplay mechanics, while making knowledge of game strategy unnecessary. Built-in types and constructs give first-class support to represent concepts like win-conditions, players, and moves. This makes writing a solver for a given game very easy. For example, we have included an example TiCTacToe solver written in less than 20 lines of code.
+A domain specific language is well suited for this problem. We can define simple language constructs which permit users to model gameplay mechanics, while making knowledge of game strategy unnecessary. Built-in types and constructs give first-class support to represent concepts like win-conditions, players, and moves. This makes writing a solver for a given game very easy. For example, we have included an example Tic-Tac-Toe solver written in less than 20 lines of code.
 
 
 \section{Design Principles}
@@ -64,7 +64,83 @@ After defining these game values, \verb|(solve)| prints out the board after Play
 
 \section{Syntax}
 
+\begin{verbatim}
 
+    Note: e denotes the empty string, _ denotes a space.
+
+    <Program>       ::= <Expr>
+                    |   <Comment>
+                    |   <Expr><Program>
+                    |   <Comment><Program>
+
+    <Comment>       ::= #<CommentVal>#
+                    |   ###<CommentVal>###
+
+    <CommentVal>    ::= <Character>
+                    |   <Character><CommentVal>
+                    |   e
+
+    <Expr>          ::= <App>
+                    |   <SavedApp>
+                    |   <Primitive>
+
+    <Primitive>     ::= <Bool>
+                    |   <Num>
+                    |   <Player>
+                    |   <Variable>
+
+    <Num>           ::= <Positive>
+                    |   <Negative>
+
+    <Positive>      ::= <d>
+                    |   <d><Positive>
+
+    <Negative>      ::= -<Positive>
+    
+    <d>             ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+    
+    <Bool>          ::= True
+                    |   False
+                    |   true
+                    |   false
+    
+    <Player>        ::= Player1
+                    |   Player2
+                    |   player1
+                    |   player2
+                    
+    <Variable>      ::= <Character><Variable>
+                    |   <Character>
+                    
+    <Character>     ::= a | b | ... | z
+
+    <App>           ::= (<Operator>)
+                    |   (<Operator>_<Parameters>)
+                    
+    <SavedApp>      ::= `<App>
+    
+    <Parameters>    ::= <Expr>
+                    |   <Expr>_<Parameters>
+                    
+    <Operator>      ::= <Function>
+                    |   + | - | * | / | = | > | < | >= | <=
+                    
+    <Function>      ::= solve
+                    |   and
+                    |   or
+                    |   not
+                    |   if
+                    |   val
+                    |   len
+                    |   list
+                    |   defWin
+                    |   changeList
+                    |   append
+                    |   defBoard
+                    |   defMoves
+                    |   validMoves?
+            
+\end{verbatim}
 
 \section{Semantics}
 
