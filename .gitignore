@@ -81,6 +81,7 @@ $RECYCLE.BIN/
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
+*.pdf
 *.log
 *.lot
 *.fls
